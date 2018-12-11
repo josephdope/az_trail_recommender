@@ -17,6 +17,8 @@ import psycopg2
 from sqlalchemy import create_engine
 from collections import defaultdict
 import re
+from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.preprocessing import StandardScaler
 
 
 ##### 12/10/18 #####
@@ -62,14 +64,33 @@ shaper.fix_column_data()
 shaper.tfidf()
 proper_df = shaper.proper_df
 
+scaler = StandardScaler()
+transformed_df = scaler.fit_transform(proper_df.iloc[:,0:8].drop('trail_name', axis = 1))
+transformed_df = pd.DataFrame(transformed_df)
+transformed_df = pd.concat((data2['trail_name'], transformed_df, proper_df.iloc[:, 8:]), axis = 1)
+
 proper_df.iloc[:,0:7].to_csv('data/no_tfidf_df.csv')
 proper_df.to_csv('data/full_df.csv')
 
+
 whatever = proper_df.iloc[:, 510]
 
+def content_recommender(trail, sim_mat, df, indices):
+    idx = indices[trail]
+    sim_scores = list(enumerate(sim_mat[idx]))
+    sim_scores = sorted(sim_scores, key = lambda x: x[1], reverse = True)
+    sim_scores = sim_scores[1:11]
+    trail_indices = [i[0] for i in sim_scores]
+    return df['trail_name'].iloc[trail_indices]
+
+indices = pd.Series(data2.index, index = data2['trail_name']).drop_duplicates()
+
+cosine_sim = cosine_similarity(proper_df.drop('trail_name', axis = 1), proper_df.drop('trail_name', axis = 1))
+content_recommender('Piestewa Peak Summit Trail #300', cosine_sim, transformed_df, indices)
 
 
 
 
+indices.index
 
 
