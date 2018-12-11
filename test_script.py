@@ -18,6 +18,9 @@ from sqlalchemy import create_engine
 from collections import defaultdict
 import re
 
+
+##### 12/10/18 #####
+
 conn = psycopg2.connect("dbname='az_trail_recommender' user='josephdoperalski' host='localhost'")
 cur = conn.cursor()
 query = 'SELECT * FROM links'
@@ -35,12 +38,6 @@ data.set_index('trail_id', inplace = True)
 #
 #X = details.details_table
 
-query2 = 'SELECT * FROM trail_info'
-data2 = sqlio.read_sql_query(query2, conn)
-data2.drop('index', axis = 1, inplace = True)
-data2.set_index('trail_id', inplace = True)
-
-
 
 #options = Options()
 #options.set_headless(True)
@@ -49,12 +46,26 @@ data2.set_index('trail_id', inplace = True)
 #browser = webdriver.Firefox(options = options, firefox_profile = firefox_profile, executable_path='/usr/local/bin/geckodriver')
 
 
+
+
+##### 12/11/19 #####
+
+
+query2 = 'SELECT * FROM trail_info'
+data2 = sqlio.read_sql_query(query2, conn)
+data2.drop('index', axis = 1, inplace = True)
+data2.set_index('trail_id', inplace = True)
+
 shaper = DataShaper(data2)
 shaper.adjust_columns()
 shaper.fix_column_data()
 shaper.tfidf()
 proper_df = shaper.proper_df
 
+proper_df.iloc[:,0:7].to_csv('data/no_tfidf_df.csv')
+proper_df.to_csv('data/full_df.csv')
+
+whatever = proper_df.iloc[:, 510]
 
 
 

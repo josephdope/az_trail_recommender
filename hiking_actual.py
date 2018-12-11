@@ -135,7 +135,7 @@ class DataShaper():
         self.proper_df['difficulty'] = self.proper_df['difficulty'].apply(lambda x: 1 if x == 'EASY' else (2 if x == 'MODERATE' else 3))
         
     def tfidf(self, tokenizer = my_tokenizer):
-        vect = TfidfVectorizer(tokenizer = tokenizer, stop_words = 'english', ngram_range = (1,2), min_df = .002)
+        vect = TfidfVectorizer(tokenizer = tokenizer, stop_words = 'english', ngram_range = (1,2), min_df = .015)
         tfidf_init = vect.fit_transform(self.proper_df['text'])
         tfidf_df = pd.DataFrame(tfidf_init.toarray(), columns = vect.get_feature_names(), index = self.proper_df.index)
         self.proper_df = pd.concat((self.proper_df.drop(['text'], axis = 1), tfidf_df), axis = 1)
