@@ -6,11 +6,20 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.common.action_chains import ActionChains
+from sklearn.feature_extraction.text import TfidfVectorizer
+from nltk.tokenize import RegexpTokenizer
 import time
 import psycopg2
 from sqlalchemy import create_engine
 from collections import defaultdict
 import re
+
+
+
+def my_tokenizer(doc):
+    tokenizer = RegexpTokenizer(r'\w+')
+    article_tokens = tokenizer.tokenize(doc.lower())
+    return article_tokens
 
 
 class DataGrabber():
@@ -45,11 +54,13 @@ class DataGrabber():
         trail_dict = defaultdict(list)
         for t in self.links_table.iterrows():
             try:
-                url = 'https://www.alltrails.com/'+t[1][1][9:]
+                url = 'https://www.alltrails.com/'+t[1][2][9:]
                 self.browser.get(url)
                 page_content = BeautifulSoup(self.browser.page_source, 'html.parser')
                 details = page_content.findAll('div', attrs = {'class':'detail-data'})
                 trail_info = []
+                trail_info.append(t[1][0])
+                trail_info.append(t[1][1])
                 for p in details:
                     trail_info.append(p.text)
                 trail_info.append(page_content.findAll('div', attrs = {'id':'difficulty-and-rating'})[0].find('span').text)
@@ -67,11 +78,11 @@ class DataGrabber():
                     trail_info.append(' ')
                 trail_dict[t[1][0]] = trail_info
                 time.sleep(.5)
-                print(t[1][0] + ' information added successfully')
+                print(t[1][1] + ' information added successfully')
             except:
-                print(t[1][0] + ' trail page not found')
+                print(t[1][1] + ' trail page not found')
                 continue
-            self.details_table = pd.DataFrame.from_dict(trail_dict, orient = 'index')
+            self.details_table = pd.DataFrame.from_dict(trail_dict, orient = 'index', columns = ['trail_id', 'trail_name', 'dist', 'elev', 'type', 'difficulty', 'num_completed','tags', 'overview', 'full_desc'])
             
     @property
     def browser(self):
@@ -90,29 +101,9 @@ class DataGrabber():
             chrome_options.add_argument("--incognito")
             chrome_options.add_argument("--headless")
             self._browser = webdriver.Chrome(chrome_options = chrome_options, executable_path='/usr/local/bin/chromedriver')
-
-
             
-    
-class DataShaper():
-    
-    def __init__(self, raw_dataframe):
-        self.raw = raw_dataframe
-        self.proper_df = pd.DataFrame()
-        
-    def adjust_columns(self):
-        self.proper_df = self.raw.iloc[:,0:-3]
-        self.proper_df.columns = ['dist', 'elev', 'type', 'difficulty', 'num_completed']
-        self.proper_df.loc[:,'text'] = self.raw.iloc[:,-3] + self.raw.iloc[:,-2] + self.raw.iloc[:,-1]
-        
-    def fix_column_data(self):
-        self.proper_df['dist'] = self.proper_df['dist'].apply(lambda x: float(re.findall(r"[-+]?\d*\.\d+|\d+", x)[0]) * 0.621371 if 'mile' not in x else float(re.findall(r"[-+]?\d*\.\d+|\d+", x)[0]))
-        self.proper_df['elev'] = self.proper_df['elev'].apply(lambda x: float(re.sub("[^\d\.]", '',  x)) * 3.28084 if 'feet' not in x else float(re.sub('[^\d\.]','', x)))
-        self.proper_df['num_completed'] = self.proper_df['num_completed'].apply(lambda x: float(re.sub("[^\d\.]", '',  x)))
-        
+            
 
-        
-        
 class DatabaseExport():
     
     def __init__(self, data, database, table_name):
@@ -123,7 +114,47 @@ class DatabaseExport():
     def database_it(self, table, table_name):
         engine = create_engine('postgresql://josephdoperalski@localhost:5432/'+self.database)
         table.to_sql(table_name, engine)
+        
+            
     
+class DataShaper():
+    
+    def __init__(self, raw_dataframe):
+        self.raw = raw_dataframe
+        self.proper_df = pd.DataFrame()
+        
+    def adjust_columns(self):
+        self.proper_df = self.raw.copy().iloc[:,0:-3]
+        self.proper_df.loc[:,'text'] = self.raw.iloc[:,-3] + self.raw.iloc[:,-2] + self.raw.iloc[:,-1]
+        
+    def fix_column_data(self):
+        self.proper_df['dist'] = self.proper_df['dist'].apply(lambda x: float(re.findall(r"[-+]?\d*\.\d+|\d+", x)[0]) * 0.621371 if 'mile' not in x else float(re.findall(r"[-+]?\d*\.\d+|\d+", x)[0]))
+        self.proper_df['elev'] = self.proper_df['elev'].apply(lambda x: float(re.sub("[^\d\.]", '',  x)) * 3.28084 if 'feet' not in x else float(re.sub('[^\d\.]','', x)))
+        self.proper_df['num_completed'] = self.proper_df['num_completed'].apply(lambda x: float(re.sub("[^\d\.]", '',  x)))
+        self.proper_df = pd.get_dummies(self.proper_df, columns = ['type'], drop_first = True)
+        self.proper_df['difficulty'] = self.proper_df['difficulty'].apply(lambda x: 1 if x == 'EASY' else (2 if x == 'MODERATE' else 3))
+        
+    def tfidf(self, tokenizer = my_tokenizer):
+        vect = TfidfVectorizer(tokenizer = tokenizer, stop_words = 'english', ngram_range = (1,2), min_df = .002)
+        tfidf_init = vect.fit_transform(self.proper_df['text'])
+        tfidf_df = pd.DataFrame(tfidf_init.toarray(), columns = vect.get_feature_names(), index = self.proper_df.index)
+        self.proper_df = pd.concat((self.proper_df.drop(['text'], axis = 1), tfidf_df), axis = 1)
+        return tfidf_df
+        
+        
+
+        
+        
+class DatabaseExport():
+    
+    def __init__(self, database):
+        
+        self.database = database
+        self.engine = create_engine('postgresql://josephdoperalski@localhost:5432/'+self.database)
+    
+    def database_pandas(self, data, table_name):
+        data.to_sql(table_name, self.engine)
+        
 
 if __name__ == '__main__':
     print('good')
