@@ -1,1 +1,1 @@
-# az_trail_recommender
+people like hiking
