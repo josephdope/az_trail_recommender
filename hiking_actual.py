@@ -55,6 +55,7 @@ class DataGrabber():
         for t in self.links_table.iterrows():
             try:
                 url = 'https://www.alltrails.com/'+t[1][2][9:]
+                print(url)
                 self.browser.get(url)
                 page_content = BeautifulSoup(self.browser.page_source, 'html.parser')
                 details = page_content.findAll('div', attrs = {'class':'detail-data'})
@@ -65,11 +66,15 @@ class DataGrabber():
                     trail_info.append(p.text)
                 trail_info.append(page_content.findAll('div', attrs = {'id':'difficulty-and-rating'})[0].find('span').text)
                 trail_info.append(page_content.findAll('span' , attrs = {'class':'number'})[0].text)
+                lat = page_content.findAll('meta', attrs = {'itemprop':'latitude'})
+                trail_info.append(float(lat[0].attrs['content']))
+                long = page_content.findAll('meta', attrs = {'itemprop':'longitude'})
+                trail_info.append(float(long[0].attrs['content']))
                 tags_results = page_content.findAll('span', attrs = {'class':'big rounded active'})
                 tags = []
                 for tag in tags_results:
                     tags.append(tag.text)
-                tags = ' '.join(tags)
+                tags = ','.join(tags)
                 trail_info.append(tags)
                 trail_info.append(page_content.findAll('section', attrs = {'id':'trail-top-overview-text'})[0].find('p').text)
                 try:
@@ -82,7 +87,7 @@ class DataGrabber():
             except:
                 print(t[1][1] + ' trail page not found')
                 continue
-            self.details_table = pd.DataFrame.from_dict(trail_dict, orient = 'index', columns = ['trail_id', 'trail_name', 'dist', 'elev', 'type', 'difficulty', 'num_completed','tags', 'overview', 'full_desc'])
+            self.details_table = pd.DataFrame.from_dict(trail_dict, orient = 'index', columns = ['trail_id', 'trail_name', 'dist', 'elev', 'type', 'difficulty', 'num_completed','latitude', 'longitude' ,'tags', 'overview', 'full_desc'])
             
     @property
     def browser(self):
@@ -125,7 +130,7 @@ class DataShaper():
         
     def adjust_columns(self):
         self.proper_df = self.raw.copy().iloc[:,0:-3]
-        self.proper_df.loc[:,'text'] = self.raw.iloc[:,-3] + self.raw.iloc[:,-2] + self.raw.iloc[:,-1]
+        self.proper_df.loc[:,'text'] = self.raw.iloc[:,-2] + self.raw.iloc[:,-1]
         
     def fix_column_data(self):
         self.proper_df['dist'] = self.proper_df['dist'].apply(lambda x: float(re.findall(r"[-+]?\d*\.\d+|\d+", x)[0]) * 0.621371 if 'mile' not in x else float(re.findall(r"[-+]?\d*\.\d+|\d+", x)[0]))
@@ -133,6 +138,9 @@ class DataShaper():
         self.proper_df['num_completed'] = self.proper_df['num_completed'].apply(lambda x: float(re.sub("[^\d\.]", '',  x)))
         self.proper_df = pd.get_dummies(self.proper_df, columns = ['type'], drop_first = True)
         self.proper_df['difficulty'] = self.proper_df['difficulty'].apply(lambda x: 1 if x == 'EASY' else (2 if x == 'MODERATE' else 3))
+        tags_set = set()
+        [[tags_set.add(t) for t in x.split(',')] for x in self.raw['tags']]
+        tags_df = pd.DataFrame(np.zeros((self.proper_df.shape[0], len(tags_set))), columns = tags_set, index = self.proper_df['trail_id'])
         
     def tfidf(self, tokenizer = my_tokenizer):
         vect = TfidfVectorizer(tokenizer = tokenizer, stop_words = 'english', ngram_range = (1,2), min_df = .02)

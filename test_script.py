@@ -1,4 +1,4 @@
-from hiking_actual import DataGrabber, DataShaper
+from hiking_actual import DataGrabber, DataShaper, DatabaseExport
 import psycopg2
 import pandas.io.sql as sqlio
 from selenium.webdriver.firefox.options import Options
@@ -27,18 +27,23 @@ conn = psycopg2.connect("dbname='az_trail_recommender' user='josephdoperalski' h
 cur = conn.cursor()
 query = 'SELECT * FROM links'
 data = sqlio.read_sql_query(query, conn)
-data.set_index('trail_id', inplace = True)
+#data.set_index('trail_id', inplace = True)
+#conn.close()
+#cur.close()
 
-#engine = create_engine('postgresql://josephdoperalski@localhost:5432/az_trail_recommender')
+engine = create_engine('postgresql://josephdoperalski@localhost:5432/az_trail_recommender')
 #P.to_sql('trail_info', engine)
 
-#details = DataGrabber(url = None)
-#
-#details.links_table = data
-#
-#details.grab_details()
-#
-#X = details.details_table
+details = DataGrabber(url = None)
+
+details.links_table = data
+
+details.grab_details()
+
+X = details.details_table
+
+#exporter = DatabaseExport('az_trail_recommender')
+#exporter.database_pandas(X, 'trail_info')
 
 
 #options = Options()
@@ -57,6 +62,8 @@ query2 = 'SELECT * FROM trail_info'
 data2 = sqlio.read_sql_query(query2, conn)
 data2.drop('index', axis = 1, inplace = True)
 data2.set_index('trail_id', inplace = True)
+
+data2 = X
 
 shaper = DataShaper(data2)
 shaper.adjust_columns()
@@ -87,10 +94,24 @@ indices = pd.Series(data2.index, index = data2['trail_name']).drop_duplicates()
 
 cosine_sim = cosine_similarity(proper_df.drop('trail_name', axis = 1), proper_df.drop('trail_name', axis = 1))
 content_recommender('Piestewa Peak Summit Trail #300', cosine_sim, transformed_df, indices)
+                    
+                    
+content_recommender('Sunrise Mountain Trail', cosine_sim, transformed_df, indices)
 
-
-
+max_dist = proper_df[proper_df['dist'] == max(proper_df['dist'])]
 
 indices.index
 
+##### 12/12/19 #####
 
+options = Options()
+options.set_headless(True)
+firefox_profile = webdriver.FirefoxProfile()
+firefox_profile.set_preference("browser.privatebrowsing.autostart", True)
+browser = webdriver.Firefox(options = options, firefox_profile = firefox_profile, executable_path='/usr/local/bin/geckodriver')
+url = 'https://www.alltrails.com/trail/us/arizona/piestewa-peak-summit-trail-300'
+browser.get(url)
+page_content = BeautifulSoup(browser.page_source, 'html.parser')
+
+lat = page_content.findAll('meta', attrs = {'itemprop':'latitude'})
+float(lat[0].attrs['content'])
