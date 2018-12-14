@@ -5,6 +5,13 @@
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 
+<script type="text/javascript">
+    document.getElementById("recommendbutton").onclick = function () {
+        location.href = "google.com";
+    };
+</script>
+
+
 <header style="background-color: #B78282" class="jumbotron">
   <h1 class="text-center">Take a Hike</h1>
   <h2 class="text-center">Arizona</h2>
@@ -14,30 +21,18 @@
     <h3 class="text-center" style="color:white">Tell us a trail you like!</h3>
   </div>
   <div class="row">
-    <div class="col-lg-4 col-lg-offset-4">
-        <div class="input-group">
-            <input type="search" id="user_entered_trail" class="form-control mdb-autocomplete">
-            <span class="input-group-btn">
-                <button class="btn btn-default" type="button">Recommend Me!</button>
-                <label for="user_entered_trail" class="active">What is your favorite US state?</label>
-            </span>
-        </div><!-- /input-group -->
-    </div><!-- /.col-lg-4 -->
+    <form action="/recommendation", autocomplete="off" method="POST">
+      <div class="col-lg-4 col-lg-offset-4">
+          <div class="input-group">
+              <input type="text" id="user_entered_trail" class="form-control mdb-autocomplete" name="trail_entered">
+              <span class="input-group-btn">
+                  <button id="recommendbutton" class="btn btn-default" type="button">Recommend Me!</button>
+              </span>
+          </div><!-- /input-group -->
+      </div>
+    </form><!-- /.col-lg-4 -->
   </div><!-- /.row -->
 
 
 </body>
 </html>
-
-
-
-var indicator=["aaa","abc","def","rrr","yyyt"];
-function searchautocomplete(itemclass,data){
-      $(itemclass).typeahead({
-                  hint: true,
-                  highlight: true,
-                  source:data,
-                  limit:data.length
-      });
-}
-searchautocomplete(".form-control",indicator)

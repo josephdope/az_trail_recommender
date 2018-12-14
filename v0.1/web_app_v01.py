@@ -1,27 +1,40 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request
+from src.hiking_data_v01 import DataShaper
 from src.trail_recommender_v01 import Trail_Recommender
 import psycopg2
 import pandas.io.sql as sqlio
 
-
+#DB Connection
 conn = psycopg2.connect("dbname='az_trail_recommender' user='josephdoperalski' host='localhost'")
 cur = conn.cursor()
 
+#DB Query
 query2 = 'SELECT * FROM trail_info'
-data2 = sqlio.read_sql_query(query2, conn)
-data2.drop('index', axis = 1, inplace = True)
+raw = sqlio.read_sql_query(query2, conn)
+raw.drop('index', axis = 1, inplace = True)
+
+#Data Manipulation
+shaper = DataShaper(raw)
+shaper.adjust_columns()
+shaper.fix_column_data()
+shaper.tfidf()
+shaper.transform()
+df = shaper.transformed_df
+
+#Build recommender
+recommender = Trail_Recommender(df)
 
 app = Flask(__name__)
 
 @app.route('/')
 def first():
-    trails = list(data2['trail_name'])
+    trails = list(df['trail_name'])
     return render_template('home.html', trails = trails)
 
-@app.route('/recommendation')
+@app.route('/recommendation', methods=['GET','POST'])
 def recommendation():
-    pass
-
+    results = list(recommender.recommend(str(request.form['trail_entered'])))
+    return render_template('recommend.html', results = results)
 
 @app.route('/trail-stats')
 def stats():
