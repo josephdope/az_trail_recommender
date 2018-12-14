@@ -11,7 +11,6 @@ class Trail_Recommender():
         self.cosine_mat = cosine_similarity(self.dataframe.drop(['trail_name', 'trail_id'], axis = 1), self.dataframe.drop(['trail_name', 'trail_id'], axis = 1))
         
     def recommend(self, trail):
-        self.cosine_mat = cosine_similarity(self.dataframe.drop(['trail_name', 'trail_id'], axis = 1), self.dataframe.drop(['trail_name', 'trail_id'], axis = 1))
         indices = pd.Series(self.dataframe.index, index = self.dataframe['trail_name']).drop_duplicates()
         idx = indices[trail]
         sim_scores = list(enumerate(self.cosine_mat[idx]))
