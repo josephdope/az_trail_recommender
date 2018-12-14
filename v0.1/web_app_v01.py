@@ -33,8 +33,11 @@ def first():
 
 @app.route('/recommendation', methods=['GET','POST'])
 def recommendation():
-    results = list(recommender.recommend(str(request.form['trail_entered'])))
-    return render_template('recommend.html', results = results)
+    try:
+        results = list(recommender.recommend(str(request.form['trail_entered'])))
+        return render_template('recommend.html', results = results)
+    except:
+        return "We don't know that trail, try again!"
 
 @app.route('/trail-stats')
 def stats():
