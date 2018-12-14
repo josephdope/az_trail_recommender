@@ -9,8 +9,8 @@ conn = psycopg2.connect("dbname='az_trail_recommender' user='josephdoperalski' h
 cur = conn.cursor()
 
 #DB Query
-query2 = 'SELECT * FROM trail_info'
-raw = sqlio.read_sql_query(query2, conn)
+query1 = 'SELECT * FROM trail_info'
+raw = sqlio.read_sql_query(query1, conn)
 raw.drop('index', axis = 1, inplace = True)
 
 #Data Manipulation
