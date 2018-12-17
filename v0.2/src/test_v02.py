@@ -160,15 +160,22 @@ filter_t = [x for x in trans_df['trail_name'] if 'Flatiron' in x]
 
 
 trail = np.random.choice(trans_df['trail_name'], size = 1, replace = True)[0]
-trail = "Deem Hills Circumference Trail"
+trail = "Humphrey's Peak"
 print(trail)
 
 result_trails = recommender.recommend(trail)
-result_trails.index
+print(result_trails)
+proper_df[proper_df['trail_id']==600]['trail_name']
 
-new = pd.DataFrame(cosine_mat, index = trans_df.index, columns = trans_df.index)
+new = pd.DataFrame(cosine_mat, index = trans_df.index, columns = trans_df.index)[100]
 
 results = proper_df.loc[proper_df['trail_id'].isin(result_trails), ['trail_name', 'dist']]
+
+results.join(new)
+
+results.rename(columns = {results.columns[-1]: 'sim'}, inp)
+
+results.sort_values(by = ['sim'], ascending = False)
 
 #proper_df.iloc[:, 0:61].to_csv('../data/tableau_df.csv')
 
@@ -186,7 +193,9 @@ cosine_mat[results.index, proper_df[proper_df['trail_name'] == trail].index]
 #    pickle.dump(proper_df, fdf)
 
 
+##### 12/17/2018 #####
 
+#SCRAPING REVIEWS DATA
 
 
 

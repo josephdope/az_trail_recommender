@@ -90,6 +90,8 @@ class DataGrabber():
                 continue
             self.details_table = pd.DataFrame.from_dict(trail_dict, orient = 'index', columns = ['trail_id', 'trail_name', 'dist', 'elev', 'type', 'difficulty', 'num_completed','latitude', 'longitude' ,'tags', 'overview', 'full_desc'])
             
+        
+            
     @property
     def browser(self):
         return self._browser
