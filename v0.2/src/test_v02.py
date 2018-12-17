@@ -1,5 +1,5 @@
-from hiking_data_v01 import DataGrabber, DataShaper, DatabaseExport
-from trail_recommender_v01 import Trail_Recommender
+from hiking_data_v02 import DataGrabber, DataShaper, DatabaseExport
+from trail_recommender_v02 import Trail_Recommender
 import psycopg2
 import pandas.io.sql as sqlio
 from selenium.webdriver.firefox.options import Options
@@ -20,6 +20,7 @@ from collections import defaultdict
 import re
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.preprocessing import StandardScaler
+import pickle
 
 
 ###### 12/10/18 #####
@@ -159,14 +160,32 @@ filter_t = [x for x in trans_df['trail_name'] if 'Flatiron' in x]
 
 
 trail = np.random.choice(trans_df['trail_name'], size = 1, replace = True)[0]
-#trail = "Flatiron Via Siphon Draw Trail"
+trail = "Deem Hills Circumference Trail"
 print(trail)
-recommender.recommend(trail)
 
+result_trails = recommender.recommend(trail)
+result_trails.index
+
+new = pd.DataFrame(cosine_mat, index = trans_df.index, columns = trans_df.index)
+
+results = proper_df.loc[proper_df['trail_id'].isin(result_trails), ['trail_name', 'dist']]
 
 #proper_df.iloc[:, 0:61].to_csv('../data/tableau_df.csv')
 
 #print(list(dupes['trail']))
+
+cosine_mat[results.index, proper_df[proper_df['trail_name'] == trail].index]
+
+#with open('cosine_matrix', 'wb') as cm:
+#    pickle.dump(new, cm)
+
+#with open('transformed_df', 'wb') as tdf:
+#    pickle.dump(trans_df, tdf)
+#    
+#with open('feature_df', 'wb') as fdf:
+#    pickle.dump(proper_df, fdf)
+
+
 
 
 

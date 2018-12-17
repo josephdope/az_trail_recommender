@@ -4,21 +4,40 @@
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 
-<body style="background-image:url('static/img/SR.jpg'); background-repeat: no-repeat;background-position: center top; background-size:100%;">
+<body style="background-image:url('static/img/SR.jpg'); background-repeat: no-repeat;background-position: center top; background-size: 100% ;">
+
+
+
+
+
+
+
+
+
+
+
   <table class="table table-bordered text-center">
-    <thead class="thead-dark">
+    <thead class="thead-dark text-center">
         <th scope="col">Trail Name</th>
         <th scope="col">Miles</th>
         <th scope="col">Elevation</th>
         <th scope="col">Difficulty</th>
+        <th scope="col">Similarity Score</th>
     </thead>
     <tbody>
+        <tr>
+            <td style="color:#963939;">{{ trail_details[0][0] }}</td>
+            <td style="color:#963939;">{{ trail_details[0][1] }}</td>
+            <td style="color:#963939;">{{ trail_details[0][2] }}</td>
+            <td style="color:#963939;">{{ trail_details[0][3] }}</td>
+        </tr>
         {% for result in results %}
         <tr>
-            <td style="color:#FFFAF0;">{{ result.name }}</td>
-            <td style="color:#FFFAF0;">{{ result.dist }}</td>
-            <td style="color:#FFFAF0;">{{ result.elev }}</td>
-            <td style="color:#FFFAF0;">{{ result.trail_name }}</td>
+            <td style="color:#FFFAF0;">{{ result[0] }}</td>
+            <td style="color:#FFFAF0;">{{ result[1] }}</td>
+            <td style="color:#FFFAF0;">{{ result[2] }}</td>
+            <td style="color:#FFFAF0;">{{ result[3] }}</td>
+            <td style="color:#963939;">{{ result[4] }}</td>
         </tr>
         {% endfor %}
     </tbody>

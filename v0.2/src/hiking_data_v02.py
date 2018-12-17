@@ -144,9 +144,9 @@ class DataShaper():
         scaler = StandardScaler()
         trans_df = scaler.fit_transform(self.proper_df.iloc[:,:8].drop(['trail_name','difficulty', 'trail_id'], axis = 1))
         trans_df = pd.DataFrame(trans_df)
-        self.transformed_df = pd.concat((self.proper_df['trail_id'], self.proper_df['trail_name'], trans_df, self.proper_df['difficulty'], self.proper_df.iloc[:,8:]), axis = 1)
+        self.transformed_df = pd.concat((self.proper_df[['trail_id', 'trail_name']], trans_df, self.proper_df['difficulty'], self.proper_df.iloc[:,8:]), axis = 1)
         self.transformed_df.loc[:,0] = self.transformed_df.loc[:,0]*50
-        self.transformed_df.columns = self.proper_df.columns
+        self.transformed_df.columns = ['trail_id', 'trail_name', 'dist', 'elev', 'num_completed', 'latitude', 'longitude','difficulty'] + list(self.proper_df.iloc[:, 8:].columns)
 
         
         
