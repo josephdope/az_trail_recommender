@@ -93,17 +93,26 @@ class DataGrabber():
     def grab_reviews(self):
         review_dict = defaultdict(list)
         review_id = 0
-        for t in self.links_table.iloc[:5, :].iterrows():
+        for t in self.links_table.iterrows():
             url = 'https://www.alltrails.com/'+t[1][2][9:]
             self.browser.get(url)
             page_content = BeautifulSoup(self.browser.page_source, 'html.parser')            
-            reviews = page_content.findAll('div', attrs = {'itemprop':'review'})
             elem = self.browser.find_element_by_id('load_more')
-            actions = ActionChains(self.browser)
-            self.browser.execute_script("arguments[0].scrollIntoView();", elem)
-            
+            more_reviews = True
+            load_count = 0
+            while more_reviews == True and load_count < 100:
+                try:                               
+                    self.browser.execute_script("arguments[0].scrollIntoView();", elem)
+                    elem.click()
+                    time.sleep(2)
+                    load_count += 1
+                except:
+                    more_reviews = False
+                    
+            reviews = page_content.findAll('div', attrs = {'itemprop':'review'})            
             for i in reviews:
                 review_list = []
+                review_list.append(review_id)
                 review_list.append(t[1][0])
                 review_list.append(t[1][1])
                 try:
@@ -123,7 +132,7 @@ class DataGrabber():
                 review_dict[review_id] = review_list
                 review_id += 1
             
-        self.reviews_table = pd.DataFrame.from_dict(review_dict, orient = 'index', columns = ['trail_id', 'trail_name', 'user', 'rating', 'body'])                
+        self.reviews_table = pd.DataFrame.from_dict(review_dict, orient = 'index', columns = ['review_id', 'trail_id', 'trail_name', 'user', 'rating', 'body'])                
                 
     @property
     def browser(self):

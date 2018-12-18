@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request
-from src.hiking_data_v02 import DataShaper
-from src.trail_recommender_v02 import Trail_Recommender
+from src.hiking_data_v03 import DataShaper
+from src.trail_recommender_v03 import Trail_Recommender
 import psycopg2
 import pandas as pd
 import pandas.io.sql as sqlio
@@ -56,7 +56,7 @@ def recommendation():
 
 @app.route('/trail-stats')
 def stats():
-    pass
+    return render_template('trail-stats.html')
 
 
 
