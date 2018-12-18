@@ -14,6 +14,8 @@ import psycopg2
 from sqlalchemy import create_engine
 from collections import defaultdict
 import re
+import math
+import sys
 
 
 
@@ -93,44 +95,53 @@ class DataGrabber():
     def grab_reviews(self):
         review_dict = defaultdict(list)
         review_id = 0
+        exporter = DatabaseExport('az_trail_recommender')
         for t in self.links_table.iterrows():
-            url = 'https://www.alltrails.com/'+t[1][2][9:]
-            self.browser.get(url)
-            page_content = BeautifulSoup(self.browser.page_source, 'html.parser')            
-            elem = self.browser.find_element_by_id('load_more')
-            more_reviews = True
-            load_count = 0
-            while more_reviews == True and load_count < 100:
-                try:                               
-                    self.browser.execute_script("arguments[0].scrollIntoView();", elem)
-                    elem.click()
-                    time.sleep(2)
-                    load_count += 1
-                except:
-                    more_reviews = False
-                    
-            reviews = page_content.findAll('div', attrs = {'itemprop':'review'})            
-            for i in reviews:
-                review_list = []
-                review_list.append(review_id)
-                review_list.append(t[1][0])
-                review_list.append(t[1][1])
-                try:
-                    review_list.append(i.find(class_ = 'feed-user-content rounded').find(class_ = "width-for-stars-holder").find(class_ = 'link').attrs['href'])
-                except:
-                    review_list.append('')
-                    
-                try:
-                    review_list.append(i.find(itemprop = 'reviewRating').find(itemprop = 'ratingValue').attrs['content'])
-                except:
-                    review_list.append('')
-                    
-                try:                
-                    review_list.append(i.find(itemprop = 'reviewBody').text)
-                except:
-                    review_list.append('')
-                review_dict[review_id] = review_list
-                review_id += 1
+            if sys.getsizeof(self.details_table) > 2147483648:
+                exporter.database_pandas(self.reviews_table, 'trail_reviews')
+                self.reviews_table = pd.DataFrame()
+            try:
+                url = 'https://www.alltrails.com/'+t[1][2][9:]
+                self.browser.get(url)
+                page_content = BeautifulSoup(self.browser.page_source, 'html.parser') 
+                elem = self.browser.find_element_by_id('load_more')
+                total_reviews = int(re.sub("[^\d\.]", '', page_content.findAll('a', attrs = {'name' : "Reviews"})[0].text))
+                more_reviews = True
+                load_count = 0
+                while more_reviews == True and load_count < math.ceil(total_reviews/30):
+                    try:                               
+                        self.browser.execute_script("arguments[0].scrollIntoView();", elem)
+                        elem.click()
+                        time.sleep(2)
+                        load_count += 1
+                    except:
+                        more_reviews = False
+                        
+                reviews = page_content.findAll('div', attrs = {'itemprop':'review'})            
+                for i in reviews:
+                    review_list = []
+                    review_list.append(review_id)
+                    review_list.append(t[1][0])
+                    review_list.append(t[1][1])
+                    try:
+                        review_list.append(i.find(class_ = 'feed-user-content rounded').find(class_ = "width-for-stars-holder").find(class_ = 'link').attrs['href'])
+                    except:
+                        review_list.append('')
+                        
+                    try:
+                        review_list.append(i.find(itemprop = 'reviewRating').find(itemprop = 'ratingValue').attrs['content'])
+                    except:
+                        review_list.append('')
+                        
+                    try:                
+                        review_list.append(i.find(itemprop = 'reviewBody').text)
+                    except:
+                        review_list.append('')
+                    review_dict[review_id] = review_list
+                    review_id += 1
+            except:
+                print(t[1][1] + ' did not work')
+                continue
             
         self.reviews_table = pd.DataFrame.from_dict(review_dict, orient = 'index', columns = ['review_id', 'trail_id', 'trail_name', 'user', 'rating', 'body'])                
                 
@@ -201,8 +212,8 @@ class DatabaseExport():
         self.database = database
         self.engine = create_engine('postgresql://josephdoperalski@localhost:5432/'+self.database)
     
-    def database_pandas(self, data, table_name):
-        data.to_sql(table_name, self.engine)
+    def database_pandas(self, data, table_name, table_exists = 'append'):
+        data.to_sql(table_name, self.engine, if_exists = table_exists)
         
 
 if __name__ == '__main__':
