@@ -30,4 +30,5 @@ links = grabber.links_table
 
 exporter.database_pandas(grabber.links_table, 'links')
 
-trail_dict = grabber.grab_details(links)
+trail_dict, review_dict = grabber.grab_details()
+

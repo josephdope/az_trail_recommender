@@ -21,7 +21,7 @@ def my_tokenizer(doc):
     return article_tokens
 
 
-def trail_details(page_content):
+def trail_details(t, page_content):
     details = page_content.findAll('div', attrs = {'class':'detail-data'})
     trail_info = []
     trail_info.append(t[1][0])
@@ -44,9 +44,39 @@ def trail_details(page_content):
     try:
         trail_info.append(page_content.findAll('div', attrs = {'id':'trail-detail-item'})[0].find('p').text)
     except:
-        trail_info.append(' ')
+        trail_info.append('')
     time.sleep(.5)
     return trail_info
+
+
+def trail_reviews(t, page_content):
+    review_num = 0               
+    reviews = page_content.findAll('div', attrs = {'itemprop':'review'})
+    review_dict = defaultdict(list)         
+    for i in reviews:
+        review_id = str(t[1][0])+'_'+str(review_num) 
+        review_list = []
+        review_list.append(review_id)
+        review_list.append(t[1][0])
+        review_list.append(t[1][1])
+        try:
+            review_list.append(i.find(class_ = 'feed-user-content rounded').find(class_ = "width-for-stars-holder").find(class_ = 'link').attrs['href'])
+        except:
+            review_list.append('')
+            
+        try:
+            review_list.append(i.find(itemprop = 'reviewRating').find(itemprop = 'ratingValue').attrs['content'])
+        except:
+            review_list.append('')
+            
+        try:                
+            review_list.append(i.find(itemprop = 'reviewBody').text)
+        except:
+            review_list.append('')
+        review_dict[review_id] = review_list
+        review_num += 1
+    return review_dict
+                        
 
 
 class DataGrabber():
@@ -91,29 +121,37 @@ class DataGrabber():
             links.append(i.attrs['itemid'])
             
         self.links_table = pd.concat((pd.Series(trail_ids), pd.Series(names), pd.Series(links)), axis = 1)
-        self.links_table.columns = ['trail', 'link']
-#        
+        self.links_table.columns = ['trail_id', 'trail', 'link']
+        self.links_table.drop_duplicates(subset = 'trail', inplace = True)
         
         
-    def grab_details(self, links):
+        
+    def grab_details(self):
+        exporter = DatabaseExport('az_trail_recommender')
         trail_dict = defaultdict(list)
-#        for t in self.links_table.iloc[:5,:].iterrows():
-        for t in links.iloc[:1,:].iterrows():
-            if (sys.getsizeof(self.details_table) + sys.getsizeof(self.reviews_table)) > 2147483648:
+        review_dict = defaultdict(list)
+        trail_count = 0
+        for t in self.links_table.iterrows():
+            print(trail_count)
+            print(t[1][1])
+            trail_count += 1
+            if (sys.getsizeof(trail_dict) + sys.getsizeof(review_dict)) > 2147483648:
                 self.details_table = pd.DataFrame.from_dict(trail_dict, orient = 'index', columns = ['trail_id', 'trail_name', 'dist', 'elev', 'type', 'difficulty', 'num_completed','latitude', 'longitude' ,'tags', 'overview', 'full_desc'])
                 self.reviews_table = pd.DataFrame.from_dict(review_dict, orient = 'index', columns = ['review_id', 'trail_id', 'trail_name', 'user', 'rating', 'body'])
                 exporter.database_pandas(self.reviews_table, 'trail_reviews')                
                 exporter.database_pandas(self.details_table, 'trail_details')
                 self.reviews_table = pd.DataFrame()
                 self.details_table = pd.DataFrame()
+                trail_dict = defaultdict(list)
+                review_dict = defaultdict(list)
+            url = 'https://www.alltrails.com'+t[1][2]
+            self.browser.get(url)
+            page_content = BeautifulSoup(self.browser.page_source, 'html.parser')
             try:
-                url = 'https://www.alltrails.com/'+t[1][1]
-                self.browser.get(url)
-                page_content = BeautifulSoup(self.browser.page_source, 'html.parser')
-                elem = self.browser.find_element_by_id('load_more')
+                elem = self.browser.find_element_by_css_selector('div.feed-item:nth-child(31)')
                 total_reviews = int(re.sub("[^\d\.]", '', page_content.findAll('a', attrs = {'name' : "Reviews"})[0].text))
                 more_reviews = True
-                load_count = 20
+                load_count = 0
                 while more_reviews == True and load_count < math.ceil(total_reviews/30):
                     try:                               
                         self.browser.execute_script("arguments[0].scrollIntoView();", elem)
@@ -122,11 +160,19 @@ class DataGrabber():
                         load_count += 1
                     except:
                         more_reviews = False
-                details_content = page_content.findAll('div', attrs = {'class':'detail-data'})
-                trail_dict[t[1][0]] = trail_details(page_content)
+#                page_content_reload = BeautifulSoup(self.browser.page_source, 'html.parser')
+#                trail_dict[t[1][0]] = trail_details(t, page_content_reload)
+#                review_dict = {**review_dict, **trail_reviews(t, page_content_reload)}
             except:
                 print('did not work')
-        return trail_dict
+            page_content_reload = BeautifulSoup(self.browser.page_source, 'html.parser')
+            trail_dict[t[1][0]] = trail_details(t, page_content_reload)
+            review_dict = {**review_dict, **trail_reviews(t, page_content_reload)}
+        self.details_table = pd.DataFrame.from_dict(trail_dict, orient = 'index', columns = ['trail_id', 'trail_name', 'dist', 'elev', 'type', 'difficulty', 'num_completed','latitude', 'longitude' ,'tags', 'overview', 'full_desc'])
+        self.reviews_table = pd.DataFrame.from_dict(review_dict, orient = 'index', columns = ['review_id', 'trail_id', 'trail_name', 'user', 'rating', 'body'])
+        exporter.database_pandas(self.reviews_table, 'trail_reviews')                
+        exporter.database_pandas(self.details_table, 'trail_details')
+        return trail_dict, review_dict
                 
                 
                 
@@ -176,7 +222,7 @@ class DataGrabber():
                 url = 'https://www.alltrails.com/'+t[1][2][9:]
                 self.browser.get(url)
                 page_content = BeautifulSoup(self.browser.page_source, 'html.parser') 
-                elem = self.browser.find_element_by_id('load_more')
+                elem = self.browser.find_element_by_css_selector('div.feed-item:nth-child(31)')
                 total_reviews = int(re.sub("[^\d\.]", '', page_content.findAll('a', attrs = {'name' : "Reviews"})[0].text))
                 more_reviews = True
                 load_count = 0

@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request
-from src.hiking_data_v03 import DataShaper
-from src.trail_recommender_v03 import Trail_Recommender
+from src.hiking_data_v04 import DataShaper
+from src.trail_recommender_v04 import Trail_Recommender
 import psycopg2
 import pandas as pd
 import pandas.io.sql as sqlio
@@ -12,7 +12,7 @@ conn = psycopg2.connect("dbname='az_trail_recommender' user='josephdoperalski' h
 cur = conn.cursor()
 
 #DB Query
-query2 = 'SELECT * FROM trail_info'
+query2 = 'SELECT * FROM trail_details'
 raw = sqlio.read_sql_query(query2, conn)
 raw.drop('index', axis = 1, inplace = True)
 
