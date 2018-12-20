@@ -181,96 +181,7 @@ class DataGrabber():
         self.reviews_table = pd.DataFrame.from_dict(review_dict, orient = 'index', columns = ['review_id', 'trail_id', 'trail_name', 'user', 'rating', 'body'])
         exporter.database_pandas(self.reviews_table, 'trail_reviews')                
         exporter.database_pandas(self.details_table, 'trail_details')
-        return trail_dict, review_dict
-                
-                
-                
-                
-#                trail_info = []
-#                trail_info.append(t[1][0])
-#                trail_info.append(t[1][1])
-#                for p in details:
-#                    trail_info.append(p.text)
-#                trail_info.append(page_content.findAll('div', attrs = {'id':'difficulty-and-rating'})[0].find('span').text)
-#                trail_info.append(page_content.findAll('span' , attrs = {'class':'number'})[0].text)
-#                lat = page_content.findAll('meta', attrs = {'itemprop':'latitude'})
-#                trail_info.append(float(lat[0].attrs['content']))
-#                long = page_content.findAll('meta', attrs = {'itemprop':'longitude'})
-#                trail_info.append(float(long[0].attrs['content']))
-#                tags_results = page_content.findAll('span', attrs = {'class':'big rounded active'})
-#                tags = []
-#                for tag in tags_results:
-#                    tags.append(tag.text)
-#                tags = ','.join(tags)
-#                trail_info.append(tags)
-#                trail_info.append(page_content.findAll('section', attrs = {'id':'trail-top-overview-text'})[0].find('p').text)
-#                try:
-#                    trail_info.append(page_content.findAll('div', attrs = {'id':'trail-detail-item'})[0].find('p').text)
-#                except:
-#                    trail_info.append(' ')
-#                trail_dict[t[1][0]] = trail_info
-#                time.sleep(.5)
-#                print(t[1][1] + ' information added successfully')
-#            except:
-#                print(t[1][1] + ' trail page not found')
-#                continue
-#        self.details_table = pd.DataFrame.from_dict(trail_dict, orient = 'index', columns = ['trail_id', 'trail_name', 'dist', 'elev', 'type', 'difficulty', 'num_completed','latitude', 'longitude' ,'tags', 'overview', 'full_desc'])
-#        self.reviews_table = pd.DataFrame.from_dict(review_dict, orient = 'index', columns = ['review_id', 'trail_id', 'trail_name', 'user', 'rating', 'body'])
-#        exporter.database_pandas(self.reviews_table, 'trail_reviews')                
-#        exporter.database_pandas(self.details_table, 'trail_details')
-            
-    def grab_reviews(self):
-        review_dict = defaultdict(list)
-        review_id = 0
-        exporter = DatabaseExport('az_trail_recommender')
-        for t in self.links_table.iterrows():
-            if sys.getsizeof(self.details_table) > 2147483648:
-                exporter.database_pandas(self.reviews_table, 'trail_reviews')
-                self.reviews_table = pd.DataFrame()
-            try:
-                url = 'https://www.alltrails.com/'+t[1][2][9:]
-                self.browser.get(url)
-                page_content = BeautifulSoup(self.browser.page_source, 'html.parser') 
-                elem = self.browser.find_element_by_css_selector('div.feed-item:nth-child(31)')
-                total_reviews = int(re.sub("[^\d\.]", '', page_content.findAll('a', attrs = {'name' : "Reviews"})[0].text))
-                more_reviews = True
-                load_count = 0
-                while more_reviews == True and load_count < math.ceil(total_reviews/30):
-                    try:                               
-                        self.browser.execute_script("arguments[0].scrollIntoView();", elem)
-                        elem.click()
-                        time.sleep(2)
-                        load_count += 1
-                    except:
-                        more_reviews = False
-                        
-                reviews = page_content.findAll('div', attrs = {'itemprop':'review'})            
-                for i in reviews:
-                    review_list = []
-                    review_list.append(review_id)
-                    review_list.append(t[1][0])
-                    review_list.append(t[1][1])
-                    try:
-                        review_list.append(i.find(class_ = 'feed-user-content rounded').find(class_ = "width-for-stars-holder").find(class_ = 'link').attrs['href'])
-                    except:
-                        review_list.append('')
-                        
-                    try:
-                        review_list.append(i.find(itemprop = 'reviewRating').find(itemprop = 'ratingValue').attrs['content'])
-                    except:
-                        review_list.append('')
-                        
-                    try:                
-                        review_list.append(i.find(itemprop = 'reviewBody').text)
-                    except:
-                        review_list.append('')
-                    review_dict[review_id] = review_list
-                    review_id += 1
-            except:
-                print(t[1][1] + ' did not work')
-                continue
-            
-        self.reviews_table = pd.DataFrame.from_dict(review_dict, orient = 'index', columns = ['review_id', 'trail_id', 'trail_name', 'user', 'rating', 'body'])                
+        return trail_dict, review_dict        
                 
     @property
     def browser(self):
@@ -280,7 +191,7 @@ class DataGrabber():
     def browser(self, value):
         if value == 'Firefox':
             options = Options()
-#            options.set_headless(True)
+            options.set_headless(True)
             firefox_profile = webdriver.FirefoxProfile()
             firefox_profile.set_preference("browser.privatebrowsing.autostart", True)
             self._browser = webdriver.Firefox(options = options, firefox_profile = firefox_profile, executable_path='/usr/local/bin/geckodriver')
@@ -291,7 +202,7 @@ class DataGrabber():
             self._browser = webdriver.Chrome(chrome_options = chrome_options, executable_path='/usr/local/bin/chromedriver')       
             
     
-class DataShaper():
+class DetailsShaper():
     
     def __init__(self, raw_dataframe):
         self.raw = raw_dataframe
@@ -310,7 +221,7 @@ class DataShaper():
         self.proper_df['difficulty'] = self.proper_df['difficulty'].apply(lambda x: 1 if x == 'EASY' else (2 if x == 'MODERATE' else 3))
         tags_set = set()
         [[tags_set.add(t) for t in x.split(',')] for x in self.raw['tags']]
-        tags_df = pd.DataFrame(np.zeros((self.proper_df.shape[0], len(tags_set))), columns = tags_set, index = self.proper_df['trail_id'])
+        tags_df = pd.DataFrame(np.zeros((self.proper_df.shape[0], len(tags_set))), columns = tags_set, index = self.proper_df.index)
         for idx, row in self.raw['tags'].iteritems():
             for tag in row.split(','):
                 tags_df.loc[idx, tag] = 1
@@ -328,7 +239,31 @@ class DataShaper():
         trans_df = pd.DataFrame(trans_df)
         self.transformed_df = pd.concat((self.proper_df[['trail_id', 'trail_name']], trans_df, self.proper_df['difficulty'], self.proper_df.iloc[:,8:]), axis = 1)
         self.transformed_df.loc[:,0] = self.transformed_df.loc[:,0]*50
+        self.transformed_df.loc[:,1] = self.transformed_df.loc[:,1]*10
         self.transformed_df.columns = ['trail_id', 'trail_name', 'dist', 'elev', 'num_completed', 'latitude', 'longitude','difficulty'] + list(self.proper_df.iloc[:, 8:].columns)
+        
+class ReviewsShaper():
+    
+    def __init__(self, raw_dataframe):
+        self.raw_dataframe = raw_dataframe.copy()
+        self.reviews_df = pd.DataFrame()
+        self.user2user_df = pd.DataFrame()
+      
+    def fix_column_data(self):
+        self.reviews_df = self.raw_dataframe.copy()
+        self.reviews_df['user'] = self.reviews_df['user'].map(lambda x: re.sub('/members/', '', x))
+        self.reviews_df.drop('trail_name', inplace = True, axis = 1)
+        self.reviews_df['rating'] = self.reviews_df['rating'].astype(np.int_)
+        
+    def user2user(self):
+        self.user2user_df = self.reviews_df
+        self.user2user_df.drop(['review_id', 'body'], axis = 1, inplace = True)
+        self.user2user_df.replace('', np.nan, inplace = True)
+        self.user2user_df.dropna(subset = ['user'], inplace = True)
+        self.user2user_df = self.user2user_df.groupby(['user', 'trail_id'], as_index = False).agg({'rating':'mean'})
+        self.user2user_df.fillna(0, inplace = True)
+        
+    
 
         
         
