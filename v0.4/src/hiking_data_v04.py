@@ -29,18 +29,27 @@ def trail_details(t, page_content):
     for p in details:
         trail_info.append(p.text)
     trail_info.append(page_content.findAll('div', attrs = {'id':'difficulty-and-rating'})[0].find('span').text)
-    trail_info.append(page_content.findAll('span' , attrs = {'class':'number'})[0].text)
+    try:
+        trail_info.append(page_content.findAll('span' , attrs = {'class':'number'})[0].text)
+    except:
+        trail_info.append(0)
     lat = page_content.findAll('meta', attrs = {'itemprop':'latitude'})
     trail_info.append(float(lat[0].attrs['content']))
     long = page_content.findAll('meta', attrs = {'itemprop':'longitude'})
     trail_info.append(float(long[0].attrs['content']))
-    tags_results = page_content.findAll('span', attrs = {'class':'big rounded active'})
-    tags = []
-    for tag in tags_results:
-        tags.append(tag.text)
-    tags = ','.join(tags)
-    trail_info.append(tags)
-    trail_info.append(page_content.findAll('section', attrs = {'id':'trail-top-overview-text'})[0].find('p').text)
+    try:
+        tags_results = page_content.findAll('span', attrs = {'class':'big rounded active'})
+        tags = []
+        for tag in tags_results:
+            tags.append(tag.text)
+        tags = ','.join(tags)
+        trail_info.append(tags)
+    except:
+        trail_info.append('')
+    try:
+        trail_info.append(page_content.findAll('section', attrs = {'id':'trail-top-overview-text'})[0].find('p').text)
+    except:
+        trail_info.append('')
     try:
         trail_info.append(page_content.findAll('div', attrs = {'id':'trail-detail-item'})[0].find('p').text)
     except:

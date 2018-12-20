@@ -22,13 +22,15 @@ from sklearn.preprocessing import StandardScaler
 import pickle
 
 
+
 exporter = DatabaseExport('az_trail_recommender')
+if len(grabber.details_table) < 0:
+    grabber = DataGrabber()
+    grabber.grab_name_and_links()
+    links = grabber.links_table    
+    exporter.database_pandas(grabber.links_table, 'links')    
+    trail_dict, review_dict = grabber.grab_details()
 
-grabber = DataGrabber()
-grabber.grab_name_and_links()
-links = grabber.links_table
-
-exporter.database_pandas(grabber.links_table, 'links')
-
-trail_dict, review_dict = grabber.grab_details()
+else:
+    conn = psycopg2.connect
 
