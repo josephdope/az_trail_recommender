@@ -63,28 +63,34 @@ content_results = links.merge(pd.DataFrame(content_results), on = 'trail_id')[['
 
 
 
-##TRAINING USER TO USER MODEL
+###TRAINING USER TO USER MODEL
+#
+#collab_based = CollabFilter(collab_df)
+#
+###Finding best parameters
+##collab_based.best_params()
+#
+##Fitting the model
+#collab_fit = collab_based.fit()
+#
+##Making recommendations
+#collab_based.recommend('amie-kimura')
 
-collab_based = CollabFilter(collab_df)
-#Finding best parameters
-collab_based.best_params()
 
-#Fitting the model
-collab_fit = collab_based.fit()
-
-#Making recommendations
-collab_based.recommend('amie-kimura')
-
-
-##Pickling stuff
+#Pickling stuff
 #with open('collab_fit', 'wb') as fit:
-#    pickle.dump(collab_fit, fit)
+#    pickle.dump(collab_based.fit(), fit)
 #    
 #with open('cosine_matrix', 'wb') as cos_mat:
 #    pickle.dump(cosine_mat, cos_mat)
 
 
-
+#TESTING PICKLED MODEL
+with open('collab_fit', 'rb') as fit:
+    collab_fit = pickle.load(fit)
+#
+#
+collab_based.recommend('amie-kimura')
 
 
 

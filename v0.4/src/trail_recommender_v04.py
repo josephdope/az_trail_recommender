@@ -13,7 +13,7 @@ class ContentBased():
 
     def create_cosine_mat(self):
         self.cosine_mat = cosine_similarity(self.dataframe.drop(['trail_name', 'trail_id'], axis = 1), self.dataframe.drop(['trail_name', 'trail_id'], axis = 1))
-        return self.cosine_mat
+        return pd.DataFrame(self.cosine_mat)
     def recommend(self, trail, cosine_mat):
         indices = pd.Series(self.dataframe.index, index = self.dataframe['trail_name']).drop_duplicates()
         idx = indices[trail]
