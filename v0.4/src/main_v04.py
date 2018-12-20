@@ -39,6 +39,7 @@ query_reviews = '''SELECT * FROM trail_reviews'''
 links = sqlio.read_sql_query(query_links, conn)
 details = sqlio.read_sql_query(query_details, conn)
 reviews = sqlio.read_sql_query(query_reviews, conn)
+links.drop('index', axis = 1, inplace = True)
 details.drop('index', axis = 1, inplace = True)
 reviews.drop('index', axis = 1, inplace = True)
 
@@ -67,8 +68,21 @@ content_results = links.merge(pd.DataFrame(content_results), on = 'trail_id')[['
 collab_based = CollabFilter(collab_df)
 #Finding best parameters
 collab_based.best_params()
-collab_based.fit()
+
+#Fitting the model
+collab_fit = collab_based.fit()
+
+#Making recommendations
 collab_based.recommend('amie-kimura')
+
+
+##Pickling stuff
+#with open('collab_fit', 'wb') as fit:
+#    pickle.dump(collab_fit, fit)
+#    
+#with open('cosine_matrix', 'wb') as cos_mat:
+#    pickle.dump(cosine_mat, cos_mat)
+
 
 
 

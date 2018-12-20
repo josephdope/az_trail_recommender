@@ -42,6 +42,7 @@ class CollabFilter():
         trainset = self.data.build_full_trainset()
         algo = SVD()
         self.fit_model = algo.fit(trainset)
+        return self.fit_model
     
     def recommend(self, user):
         predictions = defaultdict(float)
