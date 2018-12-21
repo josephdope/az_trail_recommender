@@ -71,7 +71,8 @@ content_results = links.merge(pd.DataFrame(content_results), on = 'trail_id')[['
 
 
 
-###TRAINING USER TO USER MODEL
+###TRAINING COLLABORATIVE FILTERING MODEL
+
 collab_based = CollabFilter(collab_df)
 #Finding best parameters
 collab_based.best_params()
@@ -82,20 +83,20 @@ collab_based.recommend('amie-kimura')
 
 
 ##Pickling stuff
-#with open('collab_fit', 'wb') as fit:
-#    pickle.dump(collab_based, fit)
-#    
-#with open('cosine_matrix', 'wb') as cos_mat:
-#    pickle.dump(cosine_mat, cos_mat)
-#    
-#with open('transformed_details_df', 'wb') as trans_mat:
-#    pickle.dump(content_df, trans_mat)
-#    
-#with open('details_df', 'wb') as dets_mat:
-#    pickle.dump(details_shaper.proper_df, dets_mat)
+with open('collab_fit', 'wb') as fit:
+    pickle.dump(collab_based, fit)
+    
+with open('cosine_matrix', 'wb') as cos_mat:
+    pickle.dump(cosine_mat, cos_mat)
+    
+with open('transformed_details_df', 'wb') as trans_mat:
+    pickle.dump(content_df, trans_mat)
+    
+with open('details_df', 'wb') as dets_mat:
+    pickle.dump(details_shaper.proper_df, dets_mat)
 
-#with open('collab_df', 'wb') as col_df:
-#    pickle.dump(collab_df, col_df)
+with open('collab_df', 'wb') as col_df:
+    pickle.dump(collab_df, col_df)
 
 
 
