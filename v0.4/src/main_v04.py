@@ -2,26 +2,13 @@ from hiking_data_v04 import DataGrabber, DetailsShaper, ReviewsShaper, DatabaseE
 from trail_recommender_v04 import ContentBased, CollabFilter
 import psycopg2
 import pandas.io.sql as sqlio
-from selenium.webdriver.firefox.options import Options
-from bs4 import BeautifulSoup
-import re
 import pandas as pd
 import numpy as np
-from bs4 import BeautifulSoup
-from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.firefox.options import Options
-from selenium.webdriver.common.action_chains import ActionChains
-import time
-import psycopg2
-from sqlalchemy import create_engine
-from collections import defaultdict
-import re
-from sklearn.metrics.pairwise import cosine_similarity
-from sklearn.preprocessing import StandardScaler
 import pickle
 
-##THIS IS FOR DATA IMPORT AND SQL EXPORT, IT DOES NOT NEED TO BE RUN AGAIN
+
+
+#THIS IS FOR DATA IMPORT AND SQL EXPORT, IT DOES NOT NEED TO BE RUN AGAIN
 #exporter = DatabaseExport('az_trail_recommender')
 #grabber = DataGrabber()
 #grabber.grab_name_and_links()
@@ -85,7 +72,7 @@ content_results = links.merge(pd.DataFrame(content_results), on = 'trail_id')[['
 
 collab_based = CollabFilter(collab_df)
 #Finding best parameters
-collab_based.best_params()
+#best_rmse, best_params = collab_based.best_params()
 #Fitting the model
 collab_based.fit()
 #Making recommendations

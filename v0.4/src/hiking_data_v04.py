@@ -169,9 +169,6 @@ class DataGrabber():
                         load_count += 1
                     except:
                         more_reviews = False
-#                page_content_reload = BeautifulSoup(self.browser.page_source, 'html.parser')
-#                trail_dict[t[1][0]] = trail_details(t, page_content_reload)
-#                review_dict = {**review_dict, **trail_reviews(t, page_content_reload)}
             except:
                 print('did not work')
             page_content_reload = BeautifulSoup(self.browser.page_source, 'html.parser')
