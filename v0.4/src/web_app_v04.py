@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request
 from trail_recommender_v04 import ContentBased, CollabFilter
 import psycopg2
+import numpy as np
 import pandas as pd
 import pandas.io.sql as sqlio
 import pickle
@@ -19,6 +20,9 @@ with open('cosine_matrix', 'rb') as cos_mat:
 with open('collab_fit', 'rb') as collab_model:
     collab_based = pickle.load(collab_model)
 
+with open('collab_df', 'rb') as col_df:
+    collab_df = pickle.load(col_df)
+
 
 
 #Build recommender
@@ -33,7 +37,7 @@ def first():
     trails = list(norm_df['trail_name'])
     return render_template('home.html', trails = trails)
 
-@app.route('/recommendation', methods=['GET','POST'])
+@app.route('/recommendation', methods=['POST'])
 def recommendation():
     try:
         user_entered = str(request.form['trail_entered'])
@@ -51,6 +55,17 @@ def recommendation():
 def stats():
     return render_template('trail-stats.html')
 
+@app.route('/sign-in')
+def sign_in():
+    return render_template('sign-in.html')
+
+@app.route('/user_recommendation')
+def user_recommendation():
+    user = str(np.random.choice(collab_df['user'], size = 1)[0])
+    results_ids = pd.DataFrame(collab_based.recommend(user).sort_values(ascending=False)[:10]).reset_index()
+    results_ids.columns = ['trail_id', 'expected_rating']
+    results_df = proper_df.loc[proper_df['trail_id'].isin(results_ids['trail_id']),:].merge(results_ids, how = 'right', on = 'trail_id')[["trail_name", "dist", "elev", "difficulty", "expected_rating"]].sort_values(by = ['expected_rating'], ascending = False)
+    return render_template('/user_recommendation.html', results = results_df.values.tolist())
 
 
 if __name__ == '__main__':

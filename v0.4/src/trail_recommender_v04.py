@@ -33,7 +33,7 @@ class CollabFilter():
         self.fit_model = None
         
     def best_params(self):
-        param_grid = {'n_factors':[x for x in range(100, 200, 20)], 'n_epochs':[90], 'lr_all':[.003, .005, .008], 'reg_all': [0.08, 0.1, 0.15] }
+        param_grid = {'n_factors':[x for x in range(100, 200, 10)], 'n_epochs':[90, 100, 110], 'lr_all':[.003, .005, .008], 'reg_all': [0.08, 0.1, 0.15] }
         gs = GridSearchCV(SVD, param_grid, measures = ['rmse'], cv = 3)
         gs.fit(self.data)
         return gs.best_score['rmse'], gs.best_params['rmse']

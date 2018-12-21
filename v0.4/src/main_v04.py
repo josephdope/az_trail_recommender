@@ -43,6 +43,7 @@ links.drop('index', axis = 1, inplace = True)
 details.drop('index', axis = 1, inplace = True)
 reviews.drop('index', axis = 1, inplace = True)
 
+#Content-based data manipulation
 details_shaper = DetailsShaper(details)
 details_shaper.adjust_columns()
 details_shaper.fix_column_data()
@@ -50,11 +51,18 @@ details_shaper.tfidf()
 details_shaper.transform()
 content_df = details_shaper.transformed_df
 
+###CSV Export for Tableau
+details_shaper.proper_df.iloc[:, :59].to_csv('../../Tableau/tableau_df.csv')
+
+
+#Collab-filtering data manipulation
 reviews_shaper = ReviewsShaper(reviews)
 reviews_shaper.fix_column_data()
 reviews_shaper.user2user()
 reviews_df = reviews_shaper.reviews_df
 collab_df = reviews_shaper.user2user_df
+
+###TRAINING CONTENT BASED MODEL
 
 content_based = ContentBased(content_df)
 cosine_mat = content_based.create_cosine_mat()
@@ -64,31 +72,30 @@ content_results = links.merge(pd.DataFrame(content_results), on = 'trail_id')[['
 
 
 ###TRAINING USER TO USER MODEL
-
 collab_based = CollabFilter(collab_df)
-
-##Finding best parameters
-#collab_based.best_params()
-
-##Fitting the model
+#Finding best parameters
+collab_based.best_params()
+#Fitting the model
 collab_based.fit()
-#
-##Making recommendations
-#collab_based.recommend('amie-kimura')
+#Making recommendations
+collab_based.recommend('amie-kimura')
 
 
-#Pickling stuff
-with open('collab_fit', 'wb') as fit:
-    pickle.dump(collab_based, fit)
+##Pickling stuff
+#with open('collab_fit', 'wb') as fit:
+#    pickle.dump(collab_based, fit)
 #    
-with open('cosine_matrix', 'wb') as cos_mat:
-    pickle.dump(cosine_mat, cos_mat)
-    
-with open('transformed_details_df', 'wb') as trans_mat:
-    pickle.dump(content_df, trans_mat)
-    
-with open('details_df', 'wb') as dets_mat:
-    pickle.dump(details_shaper.proper_df, dets_mat)
+#with open('cosine_matrix', 'wb') as cos_mat:
+#    pickle.dump(cosine_mat, cos_mat)
+#    
+#with open('transformed_details_df', 'wb') as trans_mat:
+#    pickle.dump(content_df, trans_mat)
+#    
+#with open('details_df', 'wb') as dets_mat:
+#    pickle.dump(details_shaper.proper_df, dets_mat)
+
+#with open('collab_df', 'wb') as col_df:
+#    pickle.dump(collab_df, col_df)
 
 
 
