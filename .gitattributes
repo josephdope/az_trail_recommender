@@ -1,3 +1,6 @@
-  collab_fit
 v1.0/src/collab_fit filter=lfs diff=lfs merge=lfs -text
 v0.4/src/collab_fit filter=lfs diff=lfs merge=lfs -text
+include=v1.0/collab_fit filter=lfs diff=lfs merge=lfs -text
+include=v0.4/collab_fit filter=lfs diff=lfs merge=lfs -text
+v0.4/collab_fit filter=lfs diff=lfs merge=lfs -text
+v1.0/collab_fit filter=lfs diff=lfs merge=lfs -text
