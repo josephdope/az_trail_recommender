@@ -52,7 +52,7 @@ details_shaper.transform()
 content_df = details_shaper.transformed_df
 
 ###CSV Export for Tableau
-details_shaper.proper_df.iloc[:, :59].to_csv('../../Tableau/tableau_df.csv')
+#details_shaper.proper_df.iloc[:, :59].to_csv('../../Tableau/tableau_df.csv')
 
 
 #Collab-filtering data manipulation
@@ -61,6 +61,16 @@ reviews_shaper.fix_column_data()
 reviews_shaper.user2user()
 reviews_df = reviews_shaper.reviews_df
 collab_df = reviews_shaper.user2user_df
+
+#Pivoted dataframe
+pivot_collab_df = collab_df.groupby(['user', 'trail_id'], as_index = False).agg({'rating':'mean'}).pivot('user', 'trail_id', 'rating')
+pivot_collab_df.fillna(0, inplace = True)
+u, s, vh = np.linalg.svd(pivot_collab_df)
+eigenvalues = np.cumsum(s**2)
+eigenvalues_over_total = eigenvalues/np.sum(eigenvalues)
+len(eigenvalues[eigenvalues<.9])
+    
+
 
 ###TRAINING CONTENT BASED MODEL
 
@@ -82,21 +92,21 @@ collab_based.fit()
 collab_based.recommend('amie-kimura')
 
 
-##Pickling stuff
-with open('collab_fit', 'wb') as fit:
-    pickle.dump(collab_based, fit)
-    
-with open('cosine_matrix', 'wb') as cos_mat:
-    pickle.dump(cosine_mat, cos_mat)
-    
-with open('transformed_details_df', 'wb') as trans_mat:
-    pickle.dump(content_df, trans_mat)
-    
-with open('details_df', 'wb') as dets_mat:
-    pickle.dump(details_shaper.proper_df, dets_mat)
-
-with open('collab_df', 'wb') as col_df:
-    pickle.dump(collab_df, col_df)
+###Pickling stuff
+#with open('collab_fit', 'wb') as fit:
+#    pickle.dump(collab_based, fit)
+#    
+#with open('cosine_matrix', 'wb') as cos_mat:
+#    pickle.dump(cosine_mat, cos_mat)
+#    
+#with open('transformed_details_df', 'wb') as trans_mat:
+#    pickle.dump(content_df, trans_mat)
+#    
+#with open('details_df', 'wb') as dets_mat:
+#    pickle.dump(details_shaper.proper_df, dets_mat)
+#
+#with open('collab_df', 'wb') as col_df:
+#    pickle.dump(collab_df, col_df)
 
 
 

@@ -33,14 +33,14 @@ class CollabFilter():
         self.fit_model = None
         
     def best_params(self):
-        param_grid = {'n_factors':[x for x in range(100, 200, 10)], 'n_epochs':[90, 100, 110], 'lr_all':[.003, .005, .008], 'reg_all': [0.08, 0.1, 0.15] }
+        param_grid = {'n_factors':[x for x in range(480, 570, 50)], 'n_epochs':[30], 'lr_all':[.003, .005, .008], 'reg_all': [0.1] }
         gs = GridSearchCV(SVD, param_grid, measures = ['rmse'], cv = 3)
         gs.fit(self.data)
         return gs.best_score['rmse'], gs.best_params['rmse']
     
     def fit(self):
         trainset = self.data.build_full_trainset()
-        algo = SVD()
+        algo = SVD(n_factors = 480, n_epochs = 30, lr_all = .008, reg_all = .1)
         self.fit_model = algo.fit(trainset)
         return self.fit_model
     
