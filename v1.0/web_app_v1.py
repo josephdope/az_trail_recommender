@@ -1,4 +1,6 @@
 from flask import Flask, render_template, request
+from wtforms import StringField, PasswordField
+from wtforms.validators import DataRequired
 from trail_recommender_v1 import ContentBased, CollabFilter
 import psycopg2
 import numpy as np
@@ -34,8 +36,9 @@ recommender = ContentBased(norm_df)
 
 @app.route('/')
 def first():
-    trails = list(norm_df['trail_name'])
-    return render_template('home.html', trails = trails)
+    trails = norm_df['trail_name'].values.tolist()
+    autocomplete_input = StringField('autocomplete_input', validators=[DataRequired()])
+    return render_template('home.html', trail_list = trails)
 
 @app.route('/recommendation', methods=['POST'])
 def recommendation():
@@ -69,4 +72,5 @@ def user_recommendation():
 
 
 if __name__ == '__main__':
+    print(list(norm_df['trail_name']))
     app.run(debug = True)
