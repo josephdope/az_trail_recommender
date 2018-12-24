@@ -37,7 +37,6 @@ recommender = ContentBased(norm_df)
 @app.route('/')
 def first():
     trails = norm_df['trail_name'].values.tolist()
-    autocomplete_input = StringField('autocomplete_input', validators=[DataRequired()])
     return render_template('home.html', trail_list = trails)
 
 @app.route('/recommendation', methods=['POST'])
@@ -49,7 +48,6 @@ def recommendation():
         results_join = proper_df.loc[proper_df["trail_id"].isin(results_ids), ["trail_name", "dist", "elev", "difficulty"]].join(cosine_mat[proper_df.loc[proper_df['trail_name'] == user_entered].index], how = 'left')
         results_join.rename(columns = {results_join.columns[-1]: 'sim'}, inplace = True)
         results_join.sort_values(by = ['sim'], ascending = False, inplace = True)
-
         return render_template('recommend.html', results = results_join.values.tolist(), trail_details = trail_details)
     except:
         return render_template('no-results.html')
@@ -72,5 +70,4 @@ def user_recommendation():
 
 
 if __name__ == '__main__':
-    print(list(norm_df['trail_name']))
     app.run(debug = True)

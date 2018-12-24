@@ -23,7 +23,7 @@
     <h3 class="text-center" style="color:white">Tell us a trail you like!</h3>
   </div>
   <div class="row">
-    <form action="/recommendation" autocomplete="off" method="POST">
+    <form action="/recommendation" id="trail_submit" autocomplete="off" method="POST">
       <div class="col-lg-4 col-lg-offset-4">
           <div class="input-group">
               <input type="text" id="user_entered_trail" list="trails" autocomplete="on" class="form-control" name="trail_entered" placeholder="e.g. Humphrey's Peak"/>
@@ -33,7 +33,7 @@
                 {% endfor %}
               </datalist>
               <span class="input-group-btn">
-                  <button id="recommendbutton" class="btn btn-default" type="button">Recommend Me!</button>
+                  <button id="recommendbutton" class="btn btn-default" form="trail_submit" type="submit">Recommend Me!</button>
               </span>
           </div><!-- /input-group -->
       </div>
