@@ -191,7 +191,7 @@ class DataGrabber():
     def browser(self, value):
         if value == 'Firefox':
             options = Options()
-            options.set_headless(True)
+#            options.set_headless(True)
             firefox_profile = webdriver.FirefoxProfile()
             firefox_profile.set_preference("browser.privatebrowsing.autostart", True)
             self._browser = webdriver.Firefox(options = options, firefox_profile = firefox_profile, executable_path='/usr/local/bin/geckodriver')

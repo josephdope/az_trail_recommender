@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 import pandas.io.sql as sqlio
 import pickle
+import os
 
 app = Flask(__name__)
 
@@ -67,6 +68,16 @@ def user_recommendation():
     results_ids.columns = ['trail_id', 'expected_rating']
     results_df = proper_df.loc[proper_df['trail_id'].isin(results_ids['trail_id']),:].merge(results_ids, how = 'right', on = 'trail_id')[["trail_name", "dist", "elev", "difficulty", "expected_rating"]].sort_values(by = ['expected_rating'], ascending = False)
     return render_template('/user_recommendation.html', results = results_df.values.tolist())
+
+@app.route('/content-based')
+def content_based():
+    bash_command = 'jupyter notebook stop | jupyter notebook notebooks/content_based.ipynb'
+    os.system(bash_command)
+
+@app.route('/uvd')
+def uvd():
+    bash_command = 'jupyter notebook notebooks/collab_filtering.ipynb'
+    os.system(bash_command)
 
 
 if __name__ == '__main__':
