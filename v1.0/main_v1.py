@@ -86,11 +86,12 @@ content_results = links.merge(pd.DataFrame(content_results), on = 'trail_id')[['
 
 collab_based = CollabFilter(collab_df)
 ##Finding best parameters
-#collab_based.best_params()
+#score, params = collab_based.best_params()
 #Fitting the model
-collab_based.fit()
+collab_based.fit(n_fact = 240)
 #Making recommendations
 collab_based.recommend('amie-kimura')
+
 
 
 

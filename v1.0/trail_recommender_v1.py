@@ -28,19 +28,19 @@ class CollabFilter():
     
     def __init__(self, dataframe = None):
         self.dataframe = dataframe
-        self.reader = Reader(rating_scale = (0, 5))
+        self.reader = Reader(rating_scale = (1, 5))
         self.data = Dataset.load_from_df(self.dataframe[['user', 'trail_id', 'rating']], self.reader)
         self.fit_model = None
         
     def best_params(self):
-        param_grid = {'n_factors':[x for x in range(480, 570, 50)], 'n_epochs':[30], 'lr_all':[.003, .005, .008], 'reg_all': [0.1] }
+        param_grid = {'n_factors':[x for x in range(240, 380, 20)], 'n_epochs':[30], 'lr_all':[.003, .005, .008], 'reg_all': [0.1] }
         gs = GridSearchCV(SVD, param_grid, measures = ['rmse'], cv = 3)
         gs.fit(self.data)
         return gs.best_score['rmse'], gs.best_params['rmse']
     
-    def fit(self):
+    def fit(self, n_fact = 480, n_epo = 30, lr_a = .008, reg_a = .1):
         trainset = self.data.build_full_trainset()
-        algo = SVD(n_factors = 480, n_epochs = 30, lr_all = .008, reg_all = .1)
+        algo = SVD(n_factors = n_fact, n_epochs = n_epo, lr_all = lr_a, reg_all = reg_a)
         self.fit_model = algo.fit(trainset)
         return self.fit_model
     
