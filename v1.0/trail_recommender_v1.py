@@ -46,7 +46,6 @@ class CollabFilter():
     
     def recommend(self, user):
         predictions = defaultdict(float)
-        x = 1
         for trail in set(self.dataframe['trail_id'].unique())-set(self.dataframe[self.dataframe['user'] == user]['trail_id']):
             predictions[trail] = self.fit_model.predict(user, trail).est
         return pd.Series(predictions).sort_values(ascending = False)[:20]
