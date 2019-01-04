@@ -1,6 +1,6 @@
 from hiking_data_v1 import DataGrabber, DetailsShaper, ReviewsShaper, DatabaseExport
 from trail_recommender_v1 import ContentBased, CollabFilter
-from review_generator import word2vecmodel_gensim
+from text_generator import data_prep, fit, generate
 import psycopg2
 import pandas.io.sql as sqlio
 from selenium.webdriver.firefox.options import Options
@@ -95,10 +95,17 @@ collab_based.recommend('amie-kimura')
 
 
 
-###Word2Vec
-#model = word2vecmodel_gensim(reviews['body'])
-#model.most_similar('butterflies')
-#model.wv.vocab
+##ReviewGenerator
+reviews[reviews['body']]
+
+training = reviews[reviews['body'] != ''].sample(frac = .1)
+
+X, y, max_len, total_words = data_prep(training)
+
+model = fit(X, y, max_len, total_words)
+
+result = generate('everything was awful', 20, max_len, model)
+
 
 
 ###Pickling stuff
