@@ -89,7 +89,7 @@ collab_based = CollabFilter(reviews_df)
 #score, params = collab_based.best_params()
 #Fitting the model
 collab_based.fit(n_fact = 240)
-Making recommendations
+##Making recommendations
 collab_based.recommend('amie-kimura')
 
 
