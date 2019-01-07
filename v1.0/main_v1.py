@@ -84,19 +84,19 @@ content_results = links.merge(pd.DataFrame(content_results), on = 'trail_id')[['
 
 ###TRAINING COLLABORATIVE FILTERING MODEL
 
-collab_based = CollabFilter(collab_df)
-##Finding best parameters
+collab_based = CollabFilter(reviews_df)
+#Finding best parameters
 #score, params = collab_based.best_params()
 #Fitting the model
 collab_based.fit(n_fact = 240)
-#Making recommendations
+Making recommendations
 collab_based.recommend('amie-kimura')
 
 
 
 
+
 ##ReviewGenerator
-reviews[reviews['body']]
 
 training = reviews[reviews['body'] != ''].sample(frac = .1)
 
@@ -108,21 +108,21 @@ result = generate('everything was awful', 20, max_len, model)
 
 
 
-###Pickling stuff
-#with open('collab_fit', 'wb') as fit:
-#    pickle.dump(collab_based, fit)
-#    
-#with open('cosine_matrix', 'wb') as cos_mat:
-#    pickle.dump(cosine_mat, cos_mat)
-#    
-#with open('transformed_details_df', 'wb') as trans_mat:
-#    pickle.dump(content_df, trans_mat)
-#    
-#with open('details_df', 'wb') as dets_mat:
-#    pickle.dump(details_shaper.proper_df, dets_mat)
-#
-#with open('collab_df', 'wb') as col_df:
-#    pickle.dump(collab_df, col_df)
+##Pickling stuff
+with open('collab_fit', 'wb') as fit:
+    pickle.dump(collab_based, fit)
+    
+with open('cosine_matrix', 'wb') as cos_mat:
+    pickle.dump(cosine_mat, cos_mat)
+    
+with open('transformed_details_df', 'wb') as trans_mat:
+    pickle.dump(content_df, trans_mat)
+    
+with open('details_df', 'wb') as dets_mat:
+    pickle.dump(details_shaper.proper_df, dets_mat)
+
+with open('collab_df', 'wb') as col_df:
+    pickle.dump(collab_df, col_df)
 #
 #
 
