@@ -103,13 +103,13 @@ collab_based.recommend('amie-kimura')
 
 ##ReviewGenerator
 
-#training = reviews[reviews['body'] != ''].sample(frac = .1)
+training = reviews[reviews['body'] != ''].sample(frac = .1)
 #
-#X, y, max_len, total_words = data_prep(training)
+X, y, max_len, total_words = data_prep(training)
 #
-#model = fit(X, y, max_len, total_words)
+model = fit(X, y, max_len, total_words)
 #
-#result = generate('everything was awful', 20, max_len, model)
+result = generate('yup', 20, max_len, model)
 
 
 
