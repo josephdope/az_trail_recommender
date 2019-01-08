@@ -21,6 +21,7 @@ import re
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.preprocessing import StandardScaler
 import pickle
+import matplotlib.pyplot as plt
 
 ##THIS IS FOR DATA IMPORT AND SQL EXPORT, IT DOES NOT NEED TO BE RUN AGAIN
 #exporter = DatabaseExport('az_trail_recommender')
@@ -62,14 +63,18 @@ reviews_shaper.fix_column_data()
 reviews_shaper.user2user()
 reviews_df = reviews_shaper.reviews_df
 collab_df = reviews_shaper.user2user_df
+user_ratings_count = collab_df.groupby('user', as_index=False).agg({'rating':'count'})
+trail_ratings_count = collab_df.groupby('trail_id', as_index=False).agg({'rating':'count'})
+active_users_trails = collab_df[(collab_df['user'].isin(user_ratings_count[user_ratings_count['rating'] >=10]['user'])) & (collab_df['trail_id'].isin(trail_ratings_count[trail_ratings_count['rating'] >= 20]['trail_id']))]
 
 #Pivoted dataframe
-pivot_collab_df = collab_df.groupby(['user', 'trail_id'], as_index = False).agg({'rating':'mean'}).pivot('user', 'trail_id', 'rating')
+pivot_collab_df = active_users.groupby(['user', 'trail_id'], as_index = False).agg({'rating':'mean'}).pivot('user', 'trail_id', 'rating')
 pivot_collab_df.fillna(0, inplace = True)
 u, s, vh = np.linalg.svd(pivot_collab_df)
-eigenvalues = np.cumsum(s**2)
-eigenvalues_over_total = eigenvalues/np.sum(eigenvalues)
-len(eigenvalues[eigenvalues<.9])
+eigenvalues = s**2
+eigen_cumsum = np.cumsum(eigenvalues)
+eigen_cumsum[1000]/sum(eigenvalues)
+features = len(eigen_cumsum[eigen_cumsum/sum(eigenvalues)<.9])
     
 
 
@@ -84,12 +89,12 @@ content_results = links.merge(pd.DataFrame(content_results), on = 'trail_id')[['
 
 ###TRAINING COLLABORATIVE FILTERING MODEL
 
-collab_based = CollabFilter(reviews_df)
-#Finding best parameters
-#score, params = collab_based.best_params()
-#Fitting the model
-collab_based.fit(n_fact = 240)
-##Making recommendations
+collab_based = CollabFilter(active_users_trails)
+##Finding best parameters
+##score, params = collab_based.best_params()
+##Fitting the model
+collab_based.fit(n_fact = 400, n_epo = 50, lr_a = .003)
+####Making recommendations
 collab_based.recommend('amie-kimura')
 
 
@@ -98,19 +103,19 @@ collab_based.recommend('amie-kimura')
 
 ##ReviewGenerator
 
-training = reviews[reviews['body'] != ''].sample(frac = .1)
-
-X, y, max_len, total_words = data_prep(training)
-
-model = fit(X, y, max_len, total_words)
-
-result = generate('everything was awful', 20, max_len, model)
+#training = reviews[reviews['body'] != ''].sample(frac = .1)
+#
+#X, y, max_len, total_words = data_prep(training)
+#
+#model = fit(X, y, max_len, total_words)
+#
+#result = generate('everything was awful', 20, max_len, model)
 
 
 
 ##Pickling stuff
-with open('collab_fit', 'wb') as fit:
-    pickle.dump(collab_based, fit)
+with open('collab_fit', 'wb') as fit_collab:
+    pickle.dump(collab_based, fit_collab)
     
 with open('cosine_matrix', 'wb') as cos_mat:
     pickle.dump(cosine_mat, cos_mat)
@@ -122,7 +127,7 @@ with open('details_df', 'wb') as dets_mat:
     pickle.dump(details_shaper.proper_df, dets_mat)
 
 with open('collab_df', 'wb') as col_df:
-    pickle.dump(collab_df, col_df)
+    pickle.dump(active_users_trails, col_df)
 #
 #
 
