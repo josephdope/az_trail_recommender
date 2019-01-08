@@ -19,8 +19,10 @@ Of course, when the data was finally gathered and exported to a SQL database, so
 ###### Models Used:
 
 •	Content-Based: cosine distance was used to calculate the similarity between trails. A matrix of distances was created. For the trail input by the user, the top 10 most similar are shown.
+[Content-Based Notebook](https://github.com/josephdope/az_trail_recommender/blob/master/v1.0/notebooks/content_based.ipynb)
 
 •	Collaborative Filtering: an SVD model from scikit learn was utilized to predict user ratings on trails they have not yet rated. The top 10 highest anticipated ratings are shown.
+[Collaborative Filtering Notebook](https://github.com/josephdope/az_trail_recommender/blob/master/v1.0/notebooks/collab_filtering.ipynb)
 
 ### Technologies Used:
 <img src="https://github.com/josephdope/az_trail_recommender/blob/master/Technologies_used.png" >
