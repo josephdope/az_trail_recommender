@@ -23,3 +23,4 @@ Of course, when the data was finally gathered and exported to a SQL database, so
 •	Collaborative Filtering: an SVD model from scikit learn was utilized to predict user ratings on trails they have not yet rated. The top 10 highest anticipated ratings are shown.
 
 ### Technologies Used:
+<img src="https://github.com/josephdope/az_trail_recommender/blob/master/Technologies_used.png" >
