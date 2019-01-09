@@ -35,7 +35,7 @@ def fit(predictors, label, max_sequence_len, total_words):
     model.add(Dropout(0.1))
     model.add(Dense(total_words, activation = 'softmax'))
     model.compile(loss = 'categorical_crossentropy', optimizer = 'adam')
-    model.fit(predictors, label, epochs = 30, verbose = 1)
+    model.fit(predictors, label, epochs = 10, verbose = 1)
     return model
     
 def generate(seed_text, next_words, max_sequence_len, model):

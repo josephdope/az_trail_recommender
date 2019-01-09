@@ -93,7 +93,7 @@ collab_based = CollabFilter(active_users_trails)
 ##Finding best parameters
 ##score, params = collab_based.best_params()
 ##Fitting the model
-collab_based.fit(n_fact = 400, n_epo = 50, lr_a = .003)
+collab_based.fit(n_fact = 11, n_epo = 50, lr_a = .003)
 ####Making recommendations
 collab_based.recommend('amie-kimura')
 
