@@ -68,7 +68,7 @@ trail_ratings_count = collab_df.groupby('trail_id', as_index=False).agg({'rating
 active_users_trails = collab_df[(collab_df['user'].isin(user_ratings_count[user_ratings_count['rating'] >=10]['user'])) & (collab_df['trail_id'].isin(trail_ratings_count[trail_ratings_count['rating'] >= 20]['trail_id']))]
 
 #Pivoted dataframe
-pivot_collab_df = active_users.groupby(['user', 'trail_id'], as_index = False).agg({'rating':'mean'}).pivot('user', 'trail_id', 'rating')
+pivot_collab_df = active_users_trails.groupby(['user', 'trail_id'], as_index = False).agg({'rating':'mean'}).pivot('user', 'trail_id', 'rating')
 pivot_collab_df.fillna(0, inplace = True)
 u, s, vh = np.linalg.svd(pivot_collab_df)
 eigenvalues = s**2
@@ -114,21 +114,21 @@ result = generate('yup', 20, max_len, model)
 
 
 ##Pickling stuff
-with open('collab_fit', 'wb') as fit_collab:
-    pickle.dump(collab_based, fit_collab)
-    
-with open('cosine_matrix', 'wb') as cos_mat:
-    pickle.dump(cosine_mat, cos_mat)
-    
-with open('transformed_details_df', 'wb') as trans_mat:
-    pickle.dump(content_df, trans_mat)
-    
-with open('details_df', 'wb') as dets_mat:
-    pickle.dump(details_shaper.proper_df, dets_mat)
-
-with open('collab_df', 'wb') as col_df:
-    pickle.dump(active_users_trails, col_df)
+#with open('collab_fit', 'wb') as fit_collab:
+#    pickle.dump(collab_based, fit_collab)
+#    
+#with open('cosine_matrix', 'wb') as cos_mat:
+#    pickle.dump(cosine_mat, cos_mat)
+#    
+#with open('transformed_details_df', 'wb') as trans_mat:
+#    pickle.dump(content_df, trans_mat)
+#    
+#with open('details_df', 'wb') as dets_mat:
+#    pickle.dump(details_shaper.proper_df, dets_mat)
 #
+#with open('collab_df', 'wb') as col_df:
+#    pickle.dump(active_users_trails, col_df)
+##
 #
 
 
