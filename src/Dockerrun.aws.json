@@ -1,0 +1,14 @@
+{
+  "AWSEBDockerrunVersion": "1",
+  "Image": {
+    "Name": "josephdope/flask",
+    "Update": "true"
+  },
+  "Ports": [
+    {
+      "ContainerPort": "0.0.0.0"
+    }
+  ],
+  "Entrypoint": "python3",
+  "Command": "application.py"
+}

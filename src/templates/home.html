@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+
+<header style="background-color:rgba(183,130,130,0.7)" class="jumbotron">
+  <div class="row">
+    <h1 class="text-center">Have a Hike</h1>
+    <h2 class="text-center">Arizona</h2>
+  </div>
+  <div class="row">
+    <div class="topnav">
+      <a class="active" href="/sign-in" style='float: right; margin-right: 35px; color:white'>Sign In</a>
+      <a class="active" href="/trail-stats" style='float: right; margin-right: 35px; color:white'>Explore Trails</a>
+      <a class="active" href="https://github.com/josephdope/az_trail_recommender" style='float: right; margin-right: 35px; color:white'>GitHub</a>
+    </div>
+  </div>
+</header>
+<body style="background-image:url('static/img/GC2.jpeg'); background-repeat: no-repeat; background-size:cover;">
+  <div class="row">
+    <h3 class="text-center" style="color:white; text-shadow: 2px 2px 0px black;"><strong>Tell us a trail you like!</strong></h3>
+  </div>
+  <div class="row">
+    <form action="/recommendation" id="trail_submit" autocomplete="off" method="POST">
+      <div class="col-lg-4 col-lg-offset-4">
+          <div class="input-group">
+              <input type="text" id="user_entered_trail" list="trails" autocomplete="on" class="form-control" name="trail_entered" placeholder="e.g. Humphrey's Peak"/>
+              <datalist id="trails">
+                {% for trail in trail_list %}
+                <option value='{{ trail }}'/>
+                {% endfor %}
+              </datalist>
+              <span class="input-group-btn">
+                  <button id="recommendbutton" class="btn btn-default" form="trail_submit" type="submit">Recommend Me!</button>
+              </span>
+          </div><!-- /input-group -->
+      </div>
+    </form>
+  </div>
+</body>
+</html>
