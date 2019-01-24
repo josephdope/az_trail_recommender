@@ -1,4 +1,4 @@
-# Take A Hike - Arizona
+# Have A Hike - Arizona
 ### Project Goal:
 As an outdoor enthusiast, I frequently find myself on the same trails over and over again. I wanted to create an easy way to discover new trails. There were two major components to this project, building a recommendation system when facing the “cold start” problem as well as a model that exploits user rating trends in order to recommend trails.
 
