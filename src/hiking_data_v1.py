@@ -97,42 +97,44 @@ class DataGrabber():
         self.reviews_table = None
 
 
-    def grab_name_and_links(self, state = 'arizona'):
-        url = 'https://www.alltrails.com/us/'+state.lower()
-        self.browser.get(url)
-        time.sleep(3)
-        page_content = BeautifulSoup(self.browser.page_source, 'html.parser')
-        num_trails = int(re.sub("[^\d\.]", '', page_content.findAll('h3', attrs = {'class' : "top-trails"})[0].text))
-        load_count = 0        
-        elem = self.browser.find_element_by_css_selector('div.load-more:nth-child(3)')                
-        self.browser.execute_script("arguments[0].scrollIntoView();", elem)
-        time.sleep(.5)
-        elem.click()
-        trail_id = 0
-        while load_count <= math.ceil(num_trails/24):
-            try:
-                self.browser.execute_script("arguments[0].scrollIntoView();", elem)
-                time.sleep(.5)
-                elem.click()
-                time.sleep(0.5)
-                load_count += 1
-            except:
-                break
-        page_content_reload = BeautifulSoup(self.browser.page_source, "html.parser")
-        trail_cards = page_content_reload.findAll('div', attrs = {'class':'trail-result-card'})
-        trail_ids = []
-        names = []
-        links = []
-        for i in trail_cards:
-            trail_ids.append(trail_id)
-            trail_id += 1
-            names.append(i.find(class_ = "name short").attrs['title'])
-            links.append(i.attrs['itemid'])
+    def grab_name_and_links(self, states = ['arizona']):
+        for state in states:
+            url = 'https://www.alltrails.com/us/'+state.lower()
+            self.browser.get(url)
+            time.sleep(3)
+            page_content = BeautifulSoup(self.browser.page_source, 'html.parser')
+            num_trails = int(re.sub("[^\d\.]", '', page_content.findAll('h3', attrs = {'class' : "top-trails"})[0].text))
+            load_count = 0        
+            elem = self.browser.find_element_by_css_selector('div.load-more:nth-child(3)')                
+            self.browser.execute_script("arguments[0].scrollIntoView();", elem)
+            time.sleep(.5)
+            elem.click()
+            trail_id = 0
+            while load_count <= math.ceil(num_trails/24):
+                try:
+                    self.browser.execute_script("arguments[0].scrollIntoView();", elem)
+                    time.sleep(.5)
+                    elem.click()
+                    time.sleep(0.5)
+                    load_count += 1
+                except:
+                    break
+            page_content_reload = BeautifulSoup(self.browser.page_source, "html.parser")
+            trail_cards = page_content_reload.findAll('div', attrs = {'class':'trail-result-card'})
+            trail_ids = []
+            names = []
+            state = []
+            links = []
+            for i in trail_cards:
+                trail_ids.append(str(state)+str(trail_id))
+                trail_id += 1
+                names.append(i.find(class_ = "name xlate-none short").attrs['title'])
+                state.append(state)
+                links.append(i.attrs['itemid'])
+                
+            self.links_table = pd.concat((pd.Series(trail_ids), pd.Series(names), pd.Series(state), pd.Series(links)), axis = 1)
+            self.links_table.columns = ['trail_id', 'trail', 'state', 'link']
             
-        self.links_table = pd.concat((pd.Series(trail_ids), pd.Series(names), pd.Series(links)), axis = 1)
-        self.links_table.columns = ['trail_id', 'trail', 'link']
-        self.links_table.drop_duplicates(subset = 'trail', inplace = True)
-        
         
         
     def grab_details(self):
@@ -188,7 +190,7 @@ class DataGrabber():
     def browser(self, value):
         if value == 'Firefox':
             options = Options()
-#            options.set_headless(True)
+            options.set_headless(False)
             firefox_profile = webdriver.FirefoxProfile()
             firefox_profile.set_preference("browser.privatebrowsing.autostart", True)
             self._browser = webdriver.Firefox(options = options, firefox_profile = firefox_profile, executable_path='/usr/local/bin/geckodriver')

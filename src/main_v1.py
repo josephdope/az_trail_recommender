@@ -1,6 +1,5 @@
 from hiking_data_v1 import DataGrabber, DetailsShaper, ReviewsShaper, DatabaseExport
 from trail_recommender_v1 import ContentBased, CollabFilter
-from text_generator import data_prep, fit, generate
 import psycopg2
 import pandas.io.sql as sqlio
 from selenium.webdriver.firefox.options import Options
@@ -23,15 +22,31 @@ from sklearn.preprocessing import StandardScaler
 import pickle
 import matplotlib.pyplot as plt
 
+
+#GRAB ALL STATES FROM GOOGLE
+options = Options()
+options.set_headless(True)
+firefox_profile = webdriver.FirefoxProfile()
+firefox_profile.set_preference("browser.privatebrowsing.autostart", True)
+browser = webdriver.Firefox(options = options, firefox_profile = firefox_profile, executable_path='/usr/local/bin/geckodriver')
+url = 'https://alphabetizer.flap.tv/lists/list-of-states-in-alphabetical-order.php'
+browser.get(url)
+page_content = BeautifulSoup(browser.page_source, 'html.parser')
+scrape_results = page_content.findAll('li')
+states = []
+for res in scrape_results:
+    states.append(res.text.replace(' ', '-'))
+
+
 ##THIS IS FOR DATA IMPORT AND SQL EXPORT, IT DOES NOT NEED TO BE RUN AGAIN
-#exporter = DatabaseExport('az_trail_recommender')
-#grabber = DataGrabber()
-#grabber.grab_name_and_links()
-#links = grabber.links_table    
-#exporter.database_pandas(grabber.links_table, 'links')    
-#trail_dict, review_dict = grabber.grab_details()
-#details = grabber.details_table
-#review = grabber.reviews_table
+exporter = DatabaseExport('az_trail_recommender')
+grabber = DataGrabber()
+grabber.grab_name_and_links()
+links = grabber.links_table    
+exporter.database_pandas(grabber.links_table, 'links')    
+trail_dict, review_dict = grabber.grab_details()
+details = grabber.details_table
+review = grabber.reviews_table
 
 conn = psycopg2.connect("dbname='az_trail_recommender' user='josephdoperalski' host='localhost'")
 cur = conn.cursor()
