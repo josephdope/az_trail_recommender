@@ -23,7 +23,7 @@ import pickle
 import matplotlib.pyplot as plt
 
 
-#GRAB ALL STATES FROM GOOGLE
+#GRAB ALL STATES FROM THE WORLD WIDE WEB
 options = Options()
 options.set_headless(True)
 firefox_profile = webdriver.FirefoxProfile()
@@ -41,12 +41,9 @@ for res in scrape_results:
 ##THIS IS FOR DATA IMPORT AND SQL EXPORT, IT DOES NOT NEED TO BE RUN AGAIN
 exporter = DatabaseExport('az_trail_recommender')
 grabber = DataGrabber()
-grabber.grab_name_and_links()
-links = grabber.links_table    
-exporter.database_pandas(grabber.links_table, 'links')    
-trail_dict, review_dict = grabber.grab_details()
-details = grabber.details_table
-review = grabber.reviews_table
+grabber.grab_name_and_links(states)
+grabber.links_table
+grabber.grab_details()
 
 conn = psycopg2.connect("dbname='az_trail_recommender' user='josephdoperalski' host='localhost'")
 cur = conn.cursor()

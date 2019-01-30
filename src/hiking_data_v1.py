@@ -92,9 +92,9 @@ class DataGrabber():
     
     def __init__(self, browser = 'Firefox'):
         self.browser = browser
-        self.links_table = None
-        self.details_table = None
-        self.reviews_table = None
+        self.links_table = pd.DataFrame()
+        self.details_table = pd.DataFrame()
+        self.reviews_table = pd.DataFrame()
 
 
     def grab_name_and_links(self, states = ['arizona']):
@@ -109,7 +109,7 @@ class DataGrabber():
             self.browser.execute_script("arguments[0].scrollIntoView();", elem)
             time.sleep(.5)
             elem.click()
-            trail_id = 0
+            trail_num = 0
             while load_count <= math.ceil(num_trails/24):
                 try:
                     self.browser.execute_script("arguments[0].scrollIntoView();", elem)
@@ -119,21 +119,24 @@ class DataGrabber():
                     load_count += 1
                 except:
                     break
-            page_content_reload = BeautifulSoup(self.browser.page_source, "html.parser")
+            page_content_reload = BeautifulSoup(self.browser.page_source, 'html.parser')
             trail_cards = page_content_reload.findAll('div', attrs = {'class':'trail-result-card'})
-            trail_ids = []
-            names = []
-            state = []
-            links = []
+#            trail_ids = []
+#            names = []
+#            location = []
+#            links = []
             for i in trail_cards:
-                trail_ids.append(str(state)+str(trail_id))
-                trail_id += 1
-                names.append(i.find(class_ = "name xlate-none short").attrs['title'])
-                state.append(state)
-                links.append(i.attrs['itemid'])
-                
-            self.links_table = pd.concat((pd.Series(trail_ids), pd.Series(names), pd.Series(state), pd.Series(links)), axis = 1)
-            self.links_table.columns = ['trail_id', 'trail', 'state', 'link']
+                trail_id = str(state)+str(trail_num)
+                name = i.find(class_ = "name xlate-none short").attrs['title']
+                link = 'alltrails.com'+i.attrs['itemid']
+                trail_num += 1
+                row = pd.Series([trail_id, name, state, link])
+                print(row)
+                self.links_table = self.links_table.append(row, ignore_index = True)
+            print(self.links_table)
+        self.links_table.columns = ['trail_id', 'trail', 'state', 'link']
+        exporter = DatabaseExport('az_trail_recommender')
+        exporter.database_pandas(self.links_table, 'links')
             
         
         
@@ -144,7 +147,6 @@ class DataGrabber():
         trail_count = 0
         for t in self.links_table.iterrows():
             print(trail_count)
-            print(t[1][1])
             trail_count += 1
             if (sys.getsizeof(trail_dict) + sys.getsizeof(review_dict)) > 2147483648:
                 self.details_table = pd.DataFrame.from_dict(trail_dict, orient = 'index', columns = ['trail_id', 'trail_name', 'dist', 'elev', 'type', 'difficulty', 'num_completed','latitude', 'longitude' ,'tags', 'overview', 'full_desc'])
@@ -155,7 +157,7 @@ class DataGrabber():
                 self.details_table = pd.DataFrame()
                 trail_dict = defaultdict(list)
                 review_dict = defaultdict(list)
-            url = 'https://www.alltrails.com'+t[1][2]
+            url = 'https://www.'+t[1][2]
             self.browser.get(url)
             page_content = BeautifulSoup(self.browser.page_source, 'html.parser')
             try:
@@ -171,16 +173,16 @@ class DataGrabber():
                         load_count += 1
                     except:
                         more_reviews = False
+                print('successful for ' + t[1][1])
             except:
-                print('did not work')
+                print('failed for '+t[1][1])
             page_content_reload = BeautifulSoup(self.browser.page_source, 'html.parser')
             trail_dict[t[1][0]] = trail_details(t, page_content_reload)
             review_dict = {**review_dict, **trail_reviews(t, page_content_reload)}
         self.details_table = pd.DataFrame.from_dict(trail_dict, orient = 'index', columns = ['trail_id', 'trail_name', 'dist', 'elev', 'type', 'difficulty', 'num_completed','latitude', 'longitude' ,'tags', 'overview', 'full_desc'])
         self.reviews_table = pd.DataFrame.from_dict(review_dict, orient = 'index', columns = ['review_id', 'trail_id', 'trail_name', 'user', 'rating', 'body'])
         exporter.database_pandas(self.reviews_table, 'trail_reviews')                
-        exporter.database_pandas(self.details_table, 'trail_details')
-        return trail_dict, review_dict        
+        exporter.database_pandas(self.details_table, 'trail_details')       
                 
     @property
     def browser(self):
@@ -190,7 +192,7 @@ class DataGrabber():
     def browser(self, value):
         if value == 'Firefox':
             options = Options()
-            options.set_headless(False)
+#            options.set_headless(False)
             firefox_profile = webdriver.FirefoxProfile()
             firefox_profile.set_preference("browser.privatebrowsing.autostart", True)
             self._browser = webdriver.Firefox(options = options, firefox_profile = firefox_profile, executable_path='/usr/local/bin/geckodriver')
@@ -271,7 +273,7 @@ class DatabaseExport():
     def __init__(self, database):
         
         self.database = database
-        self.engine = create_engine('postgresql://josephdoperalski@localhost:5432/'+self.database)
+        self.engine = create_engine('postgresql://postgres:postgres@localhost:5432/'+self.database)
     
     def database_pandas(self, data, table_name, table_exists = 'append'):
         data.to_sql(table_name, self.engine, if_exists = table_exists)
