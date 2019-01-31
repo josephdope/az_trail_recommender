@@ -54,6 +54,10 @@ def trail_details(t, page_content):
         trail_info.append(page_content.findAll('div', attrs = {'id':'trail-detail-item'})[0].find('p').text)
     except:
         trail_info.append('')
+    try:
+        trail_info.append(page_content.findAll('span', attrs = {'class':'xlate-none'})[0].text)
+    except:
+        trail_info.append('')
     time.sleep(.5)
     return trail_info
 
@@ -129,12 +133,13 @@ class DataGrabber():
                 trail_id = str(state)+str(trail_num)
                 name = i.find(class_ = "name xlate-none short").attrs['title']
                 link = 'alltrails.com'+i.attrs['itemid']
+                area = i.findAll('span', attrs = {'class' : 'location-label'})[0].find('a').text
                 trail_num += 1
-                row = pd.Series([trail_id, name, state, link])
+                row = pd.Series([trail_id, name, state, area, link])
                 print(row)
                 self.links_table = self.links_table.append(row, ignore_index = True)
             print(self.links_table)
-        self.links_table.columns = ['trail_id', 'trail', 'state', 'link']
+        self.links_table.columns = ['trail_id', 'trail', 'state', 'area', 'link']
         exporter = DatabaseExport('az_trail_recommender')
         exporter.database_pandas(self.links_table, 'links')
             
@@ -157,7 +162,7 @@ class DataGrabber():
                 self.details_table = pd.DataFrame()
                 trail_dict = defaultdict(list)
                 review_dict = defaultdict(list)
-            url = 'https://www.'+t[1][2]
+            url = 'https://www.'+t[1][4]
             self.browser.get(url)
             page_content = BeautifulSoup(self.browser.page_source, 'html.parser')
             try:

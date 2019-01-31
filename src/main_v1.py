@@ -36,6 +36,7 @@ scrape_results = page_content.findAll('li')
 states = []
 for res in scrape_results:
     states.append(res.text.replace(' ', '-'))
+states.append('washington-dc')
 
 
 ##THIS IS FOR DATA IMPORT AND SQL EXPORT, IT DOES NOT NEED TO BE RUN AGAIN
