@@ -197,7 +197,7 @@ class DataGrabber():
     def browser(self, value):
         if value == 'Firefox':
             options = Options()
-#            options.set_headless(False)
+            options.set_headless(True)
             firefox_profile = webdriver.FirefoxProfile()
             firefox_profile.set_preference("browser.privatebrowsing.autostart", True)
             self._browser = webdriver.Firefox(options = options, firefox_profile = firefox_profile, executable_path='/usr/local/bin/geckodriver')
@@ -285,7 +285,25 @@ class DatabaseExport():
         
 
 if __name__ == '__main__':
-    pass
+    options = Options()
+    options.set_headless(True)
+    firefox_profile = webdriver.FirefoxProfile()
+    firefox_profile.set_preference("browser.privatebrowsing.autostart", True)
+    browser = webdriver.Firefox(options = options, firefox_profile = firefox_profile, executable_path='/usr/local/bin/geckodriver')
+    url = 'https://alphabetizer.flap.tv/lists/list-of-states-in-alphabetical-order.php'
+    browser.get(url)
+    page_content = BeautifulSoup(browser.page_source, 'html.parser')
+    scrape_results = page_content.findAll('li')
+    states = []
+    for res in scrape_results:
+        states.append(res.text.replace(' ', '-'))
+    states.append('washington-dc')
+    
+    
+    ##THIS IS FOR DATA IMPORT AND SQL EXPORT, IT DOES NOT NEED TO BE RUN AGAIN
+    exporter = DatabaseExport('az_trail_recommender')
+    grabber = DataGrabber()
+    grabber.grab_name_and_links(states)
 
     
     

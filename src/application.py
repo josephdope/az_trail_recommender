@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request
+from Open SSL import SSL
 from wtforms import StringField, PasswordField
 from wtforms.validators import DataRequired
 from trail_recommender_v1 import ContentBased, CollabFilter
@@ -8,6 +9,7 @@ import pandas as pd
 import pandas.io.sql as sqlio
 import pickle
 import os
+
 
 application = Flask(__name__)
 
@@ -31,6 +33,9 @@ with open('collab_df', 'rb') as col_df:
 #Build recommender
 recommender = ContentBased(norm_df)
 
+context = SSL.Context(SSL.SSLv23_METHOD)
+context.use_privatekey_file('yourserver.key')
+context.use_certificate_file('yourserver.crt')
 
 
 #Web app
@@ -71,4 +76,4 @@ def user_recommendation():
 
 
 if __name__ == '__main__':
-    application.run(debug = True, host='0.0.0.0')
+    application.run(debug = True, host='0.0.0.0', ssl_context=context)
