@@ -42,7 +42,7 @@ states.append('washington-dc')
 ##THIS IS FOR DATA IMPORT AND SQL EXPORT, IT DOES NOT NEED TO BE RUN AGAIN
 exporter = DatabaseExport('az_trail_recommender')
 grabber = DataGrabber()
-grabber.grab_name_and_links(states)
+grabber.grab_name_and_links(['alabama'])
 grabber.links_table
 grabber.grab_details()
 
