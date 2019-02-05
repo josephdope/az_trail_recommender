@@ -30,7 +30,10 @@ def trail_details(t, page_content):
     trail_info.append(t[1][1])
     for p in details:
         trail_info.append(p.text)
-    trail_info.append(page_content.findAll('div', attrs = {'id':'difficulty-and-rating'})[0].find('span').text)
+    try:
+        trail_info.append(page_content.findAll('div', attrs = {'id':'difficulty-and-rating'})[0].find('span')[0].text)
+    except:
+        trail_info.append('')
     try:
         trail_info.append(page_content.findAll('span' , attrs = {'class':'number'})[0].text)
     except:
@@ -61,6 +64,7 @@ def trail_details(t, page_content):
     except:
         trail_info.append('')
     time.sleep(.5)
+    print(trail_info)
     return trail_info
 
 
@@ -180,9 +184,9 @@ class DataGrabber():
                         load_count += 1
                     except:
                         more_reviews = False
-                print('successful for ' + t[1][1])
+                print('loading reviews for ' + t[1][1])
             except:
-                print('failed for '+t[1][1])
+                continue
             page_content_reload = BeautifulSoup(self.browser.page_source, 'html.parser')
             trail_dict[t[1][0]] = trail_details(t, page_content_reload)
             review_dict = {**review_dict, **trail_reviews(t, page_content_reload)}
