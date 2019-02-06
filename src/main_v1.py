@@ -42,9 +42,9 @@ states.append('washington-dc')
 ##THIS IS FOR DATA IMPORT AND SQL EXPORT, IT DOES NOT NEED TO BE RUN AGAIN
 exporter = DatabaseExport('az_trail_recommender')
 grabber = DataGrabber()
-grabber.grab_name_and_links(states)
-grabber.links_table
-grabber.grab_details()
+grabber.grab_name_and_links(['alabama'])
+links_1 = grabber.links_table
+grabber.grab_details(links_1)
 
 conn = psycopg2.connect("dbname='az_trail_recommender' user='josephdoperalski' host='localhost'")
 cur = conn.cursor()

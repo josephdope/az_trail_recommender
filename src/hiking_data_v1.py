@@ -7,6 +7,8 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.preprocessing import StandardScaler
 from nltk.tokenize import RegexpTokenizer
 import time
+import psycopg2
+import pandas.io.sql as sqlio
 from sqlalchemy import create_engine
 from collections import defaultdict
 import re
@@ -28,7 +30,10 @@ def trail_details(t, page_content):
     trail_info.append(t[1][1])
     for p in details:
         trail_info.append(p.text)
-    trail_info.append(page_content.findAll('div', attrs = {'id':'difficulty-and-rating'})[0].find('span').text)
+    try:
+        trail_info.append(page_content.findAll('div', attrs = {'id':'difficulty-and-rating'})[0].find('span')[0].text)
+    except:
+        trail_info.append('')
     try:
         trail_info.append(page_content.findAll('span' , attrs = {'class':'number'})[0].text)
     except:
@@ -55,6 +60,7 @@ def trail_details(t, page_content):
     except:
         trail_info.append('')
     time.sleep(.5)
+    print(trail_info)
     return trail_info
 
 
@@ -141,12 +147,12 @@ class DataGrabber():
             
         
         
-    def grab_details(self):
+    def grab_details(self, df):
         exporter = DatabaseExport('az_trail_recommender')
         trail_dict = defaultdict(list)
         review_dict = defaultdict(list)
         trail_count = 0
-        for t in self.links_table.iterrows():
+        for t in df.iterrows():
             print(trail_count)
             trail_count += 1
             if (sys.getsizeof(trail_dict) + sys.getsizeof(review_dict)) > 2147483648:
@@ -174,9 +180,9 @@ class DataGrabber():
                         load_count += 1
                     except:
                         more_reviews = False
-                print('successful for ' + t[1][1])
+                print('loading reviews for ' + t[1][1])
             except:
-                print('failed for '+t[1][1])
+                continue
             page_content_reload = BeautifulSoup(self.browser.page_source, 'html.parser')
             trail_dict[t[1][0]] = trail_details(t, page_content_reload)
             review_dict = {**review_dict, **trail_reviews(t, page_content_reload)}
@@ -274,32 +280,43 @@ class DatabaseExport():
     def __init__(self, database):
         
         self.database = database
-        self.engine = create_engine('postgresql://postgres:postgres@localhost:5432/'+self.database)
+        self.engine = create_engine('postgresql:///'+self.database)
     
     def database_pandas(self, data, table_name, table_exists = 'append'):
         data.to_sql(table_name, self.engine, if_exists = table_exists)
         
 
 if __name__ == '__main__':
-    options = Options()
-    options.set_headless(True)
-    firefox_profile = webdriver.FirefoxProfile()
-    firefox_profile.set_preference("browser.privatebrowsing.autostart", True)
-    browser = webdriver.Firefox(options = options, firefox_profile = firefox_profile, executable_path='/usr/local/bin/geckodriver')
-    url = 'https://alphabetizer.flap.tv/lists/list-of-states-in-alphabetical-order.php'
-    browser.get(url)
-    page_content = BeautifulSoup(browser.page_source, 'html.parser')
-    scrape_results = page_content.findAll('li')
-    states = []
-    for res in scrape_results:
-        states.append(res.text.replace(' ', '-'))
-    states.append('washington-dc')
-    
-    
-    ##THIS IS FOR DATA IMPORT AND SQL EXPORT, IT DOES NOT NEED TO BE RUN AGAIN
-    exporter = DatabaseExport('az_trail_recommender')
-    grabber = DataGrabber()
-    grabber.grab_name_and_links(states)
+    user_response = input('Grab links or details? ')
+    if user_response == 'links':
+        options = Options()
+        options.set_headless(True)
+        firefox_profile = webdriver.FirefoxProfile()
+        firefox_profile.set_preference("browser.privatebrowsing.autostart", True)
+        browser = webdriver.Firefox(options = options, firefox_profile = firefox_profile, executable_path='/usr/local/bin/geckodriver')
+        url = 'https://alphabetizer.flap.tv/lists/list-of-states-in-alphabetical-order.php'
+        browser.get(url)
+        page_content = BeautifulSoup(browser.page_source, 'html.parser')
+        scrape_results = page_content.findAll('li')
+        states = []
+        for res in scrape_results:
+            states.append(res.text.replace(' ', '-'))
+        states.append('washington-dc')
+        
+        
+        ##THIS IS FOR DATA IMPORT AND SQL EXPORT, IT DOES NOT NEED TO BE RUN AGAIN
+        exporter = DatabaseExport('az_trail_recommender')
+        grabber = DataGrabber()
+        grabber.grab_name_and_links(states)
+    if user_response == 'details':
+        conn = psycopg2.connect("dbname='az_trail_recommender' user='josephdope'")
+        cur = conn.cursor()
+        links_query = "SELECT * FROM links"
+        links = sqlio.read_sql_query(links_query, conn)
+        links.drop('index', axis = 1, inplace = True)
+        grabber = DataGrabber()
+        grabber.grab_details(links)
+        print('grabbing details')
 
     
     
