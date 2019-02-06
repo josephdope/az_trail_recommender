@@ -54,10 +54,6 @@ def trail_details(t, page_content):
         trail_info.append(page_content.findAll('div', attrs = {'id':'trail-detail-item'})[0].find('p').text)
     except:
         trail_info.append('')
-    try:
-        trail_info.append(page_content.findAll('span', attrs = {'class':'xlate-none'})[0].text)
-    except:
-        trail_info.append('')
     time.sleep(.5)
     return trail_info
 
